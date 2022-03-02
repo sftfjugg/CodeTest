@@ -93,5 +93,5 @@ def check(**kwargs):
 ![漏洞利用界面](https://github.com/codeyso/CodeTest/blob/main/img/2.png "漏洞利用界面")
 
 ### :open_file_folder:使用示例
->案例参考：https://mp.weixin.qq.com/s/xwh81ZeE0Lgx-iIpqZI1_g
+>案例参考：https://mp.weixin.qq.com/s/F6I2ldwrk7U1COpjzTvGBQ
 
