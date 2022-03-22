@@ -1,32 +1,29 @@
 # -*- coding:UTF-8 -*-
-from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,Canvas,filedialog,PhotoImage
-from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,VERTICAL,Y,X,S,W,E,N
+from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog,PhotoImage
+from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,Y,X,S,W,E,N
 from tkinter.filedialog import askopenfilename
+from urllib import response
 from requests_toolbelt.utils import dump
 #from keyword import kwlist
 from exp10it import seconds2hms
-from os.path import isfile,isdir
-from colorama import init, Fore, Back, Style
 from jinja2 import Environment, PackageLoader
 from urllib.parse import urlparse
-from concurrent.futures import ThreadPoolExecutor,wait,as_completed,ALL_COMPLETED
+from concurrent.futures import ThreadPoolExecutor
 
 from itertools import repeat
-from urllib3.util import retry
 from openpyxl import Workbook
 from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html
 from Proxy.proxyFetcher import ProxyFetcher
-from Proxy.helper.check import DoValidator,Checker
+from Proxy.helper.check import DoValidator
 from Proxy.helper.proxy import Proxy as Proxy_cls
-from textwrap import wrap,fill
+from textwrap import wrap
 import util.globalvar as GlobalVar
-import os,sys,time,socket,socks,datetime,queue
+import os,sys,time,socket,socks,datetime
 import importlib,glob,requests,binascii,re
-import threading,ast,math,json,base64
+import threading,math,json,base64
 import urllib3, pymysql
 import inspect
 import ctypes
-import string
 import prettytable as pt
 
 #去除错误警告
@@ -73,7 +70,7 @@ class MyGUI:
         self.menubar.add_cascade(label = "打开文件", menu = self.menubar1)
 
         #顶级菜单增加一个普通的命令菜单项
-        #self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
+        self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
         self.menubar.add_command(label = "设置代理", command=lambda :TopProxy(gui.root))
         self.menubar.add_command(label = "免费代理池", command=lambda :Proxy_pool(gui.root))
         self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
@@ -87,7 +84,7 @@ class MyGUI:
         self.frmPOC = Frame(self.root, width=960 , height=600, bg='white')
         self.frmEXP = Frame(self.root, width=960 , height=610, bg='white')
         self.frmCheck = Frame(self.root, width=960 , height=610, bg='white')
-        self.frmNote = Frame(self.root, width=960 , height=610, bg='red')
+        self.frmNote = Frame(self.root, width=960 , height=610, bg='white')
         #self.frmDebug = Frame(self.root, width=960 , height=610, bg='red')
 
         self.frmTOP.grid(row=0, column=0, padx=2, pady=2)
@@ -98,12 +95,13 @@ class MyGUI:
         self.frmTOPButton1 = Button(self.frmTOP, text='漏洞扫描', width = 10, command=POC)
         self.frmTOPButton2 = Button(self.frmTOP, text='漏洞利用', width = 10, command=EXP)
         self.frmTOPButton3 = Button(self.frmTOP, text='漏洞测试', width = 10, command=Check)
+        self.frmTOPButton4 = Button(self.frmTOP, text='漏洞笔记', width = 10, command=shownote)
         #self.frmTOPButton4 = Button(self.frmTOP, text='漏洞笔记', width = 10, command=shownote)
         #self.frmTOPButton5 = Button(self.frmTOP, text='数据调试', width = 10, command=data_debug)
         self.frmTOPButton1.grid(row=0,column=0,padx=1, pady=1)
         self.frmTOPButton2.grid(row=0,column=2,padx=1, pady=1)
         self.frmTOPButton3.grid(row=0,column=3,padx=1, pady=1)
-        #self.frmTOPButton4.grid(row=0,column=4,padx=1, pady=1)
+        self.frmTOPButton4.grid(row=0,column=4,padx=1, pady=1)
         #self.frmTOPButton5.grid(row=0,column=4,padx=1, pady=1)
         
         self.frmTOP.grid_propagate(0)
@@ -1550,16 +1548,16 @@ class MyEXP:
         self.root = root
 
     def CreateFrm(self):
-        self.frmTOP = Frame(self.frmEXP, width=960, height=180,bg='white')
-        self.frmBOT = Frame(self.frmEXP, width=960, height=430,bg='white')
+        self.frmTOP = Frame(self.frmEXP, width=960, height=90,bg='white')
+        self.frmBOT = Frame(self.frmEXP, width=960, height=520,bg='white')
 
-        self.frmTOP.grid(row=0, column=0, padx=2, pady=2)
-        self.frmBOT.grid(row=1, column=0, padx=2, pady=2)
+        self.frmTOP.grid(row=0, column=0, padx=1, pady=1)
+        self.frmBOT.grid(row=1, column=0, padx=1, pady=1)
         self.frmTOP.grid_propagate(0)
         self.frmBOT.grid_propagate(0)
 
-        self.frmA = Frame(self.frmTOP, width=560, height=180,bg='white')#目标，输入框
-        self.frmB = Frame(self.frmTOP, width=400, height=180, bg='white')#输出信息
+        self.frmA = Frame(self.frmTOP, width=560, height=90,bg='white')#目标，输入框
+        self.frmB = Frame(self.frmTOP, width=400, height=90, bg='white')#输出信息
         #self.frmC = Frame(self.frmTOP, width=960, height=380, bg='black')#输出信息
         
         #表格布局
@@ -1574,13 +1572,13 @@ class MyEXP:
 
     def CreateFirst(self):
         self.frame_1 = LabelFrame(self.frmA, text="基本配置", labelanchor="nw", width=550, height=90, bg='white')
-        self.frame_2 = LabelFrame(self.frmA, text="参数配置", labelanchor="nw", width=550, height=83, bg='white')
+        #self.frame_2 = LabelFrame(self.frmA, text="参数配置", labelanchor="nw", width=550, height=83, bg='white')
         #self.frame_3 = LabelFrame(self.frmA, text="heads", labelanchor="nw", width=360, height=250, bg='black')
         self.frame_1.grid(row=0, column=0, padx=2, pady=2)
-        self.frame_2.grid(row=1, column=0, padx=2, pady=2)
+        #self.frame_2.grid(row=1, column=0, padx=2, pady=2)
         #self.frame_3.grid(row=0, column=1, padx=2, pady=2)
         self.frame_1.grid_propagate(0)
-        self.frame_2.grid_propagate(0)
+        #self.frame_2.grid_propagate(0)
         #self.frame_3.grid_propagate(0)
 
         ###基本配置
@@ -1613,7 +1611,7 @@ class MyEXP:
         self.comboxlist_3_1.grid(row=2,column=2,padx=1, pady=1,sticky=W)
         self.button_3.grid(row=2,column=3,padx=1, pady=1,sticky=W)
 
-        
+        '''
         self.label_4 = Label(self.frame_2, text="命令执行(True/False)")
         self.comboxlist_4 = ttk.Combobox(self.frame_2,width='8',textvariable=Ent_B_Top_funtype,state='readonly') #接受输入控件
         self.comboxlist_4["values"] = tuple(['True','False'])
@@ -1627,7 +1625,7 @@ class MyEXP:
 
         self.label_7 = Label(self.frame_2, text="重试间隔(retry_interval)")
         self.b7 = Spinbox(self.frame_2,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_interval)
-
+        
         self.label_4.grid(row=0,column=0,padx=3, pady=3, sticky=W)
         self.comboxlist_4.grid(row=0,column=1,padx=3, pady=3, sticky=W)
 
@@ -1639,29 +1637,42 @@ class MyEXP:
 
         self.label_7.grid(row=1,column=2,padx=3, pady=3, sticky=W)
         self.b7.grid(row=1,column=3,padx=3, pady=3, sticky=W)
-
+        '''
     def CreateSecond(self):
-        self.frame_B1 = LabelFrame(self.frmB, text="备注", labelanchor="nw", width=400, height=180, bg='white')
+        self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=180, bg='white')
         self.frame_B1.grid(row=0, column=0, padx=2, pady=2)
         self.frame_B1.propagate()
 
-        self.TexB1 = Text(self.frame_B1, font=("consolas",10), width=50, height=10)
-        self.ScrB1 = Scrollbar(self.frame_B1)
+        self.label_4 = Label(self.frame_B1, text="命令执行(True/False)")
+        self.comboxlist_4 = ttk.Combobox(self.frame_B1,width='6',textvariable=Ent_B_Top_funtype,state='readonly') #接受输入控件
+        self.comboxlist_4["values"] = tuple(['True','False'])
+        self.comboxlist_4.bind("<<ComboboxSelected>>", bind_combobox_3)
 
-        self.TexB1.grid(row=0, column=0, padx=1, pady=1)
-        self.ScrB1.grid(row=0, column=1, sticky=S + W + E + N)
-        self.ScrB1.config(command=self.TexB1.yview)
-        self.TexB1.config(yscrollcommand=self.ScrB1.set)
+        self.label_5 = Label(self.frame_B1, text="超时时间(Timeout)")
+        self.b5 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_timeout)
 
-        with open('./lib/note.txt', mode='r', encoding='utf-8') as f:
-            array = f.readlines()
-            for i in array: #遍历array中的每个元素
-                self.TexB1.insert(INSERT, i)
+        self.label_6 = Label(self.frame_B1, text="重试次数(retry_time)")
+        self.b6 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_time)
+
+        self.label_7 = Label(self.frame_B1, text="重试间隔(retry_interval)")
+        self.b7 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_interval)
+
+        self.label_4.grid(row=0,column=0,padx=2, pady=5, sticky=W)
+        self.comboxlist_4.grid(row=0,column=1,padx=2, pady=5, sticky=W)
+
+        self.label_5.grid(row=0,column=2,padx=2, pady=5, sticky=W)
+        self.b5.grid(row=0,column=3,padx=2, pady=5, sticky=W)
+
+        self.label_6.grid(row=1,column=0,padx=2, pady=5, sticky=W)
+        self.b6.grid(row=1,column=1,padx=2, pady=5, sticky=W)      
+
+        self.label_7.grid(row=1,column=2,padx=2, pady=5, sticky=W)
+        self.b7.grid(row=1,column=3,padx=2, pady=5, sticky=W)
 
     def CreateThird(self):
-        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=430, bg='white')
+        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=520, bg='white')
         self.frmBOT_1_1 = Frame(self.frmBOT_1,width=940, height=30,bg='white')
-        self.frmBOT_1_2 = Frame(self.frmBOT_1,width=940, height=400,bg='white')
+        self.frmBOT_1_2 = Frame(self.frmBOT_1,width=940, height=490,bg='white')
 
         self.frmBOT_1.grid(row=0, column=0 , padx=2, pady=2)
         self.frmBOT_1_1.grid(row=0, column=0 , padx=2, pady=2)
@@ -1698,7 +1709,7 @@ class MyEXP:
         self.buttonBOT_2.grid(row=0, column=3 , padx=2, pady=2,sticky=W)
         self.ColorButton.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
 
-        self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",10), width=132, height=23,bg='black')
+        self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",10), width=131, height=28, bg='black')
         self.ScrBOT_1_2 = Scrollbar(self.frmBOT_1_2)  #滚动条控件
 
         self.TexBOT_1_2.bind("<Button-3>", lambda x: self.rightKey(x, gui.menubar_1))#绑定右键鼠标事件
@@ -1827,6 +1838,7 @@ class Mycheck:
         self.checkbutton_4 = Button(self.frmleft_2_2, text='<-添加', width=9, command=self.newrow)
         self.checkbutton_5 = Button(self.frmleft_2_2, text='<-删除', width=9, command=self.deltreeview)
         self.checkbutton_6 = Button(self.frmleft_2_2, text='清空->', width=9, command=self.delText)
+        self.checkbutton_7 = Button(self.frmleft_2_2, text='渲染->', width=9, command=lambda:open_html('./EXP/response.html'))
 
         self.treeview_1.grid(row=0, column=0, padx=1, pady=1)
         self.checkbutton_1.grid(row=0, column=0, padx=1, pady=1, sticky='n')
@@ -1835,6 +1847,7 @@ class Mycheck:
         self.checkbutton_4.grid(row=3, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_5.grid(row=4, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_6.grid(row=5, column=0, padx=1, pady=1, sticky='n')
+        self.checkbutton_7.grid(row=6, column=0, padx=1, pady=1, sticky='n')
 
         for i in range(min(len(self.Type),len(self.Value))): # 写入数据
             self.treeview_1.insert('', 
@@ -2012,6 +2025,13 @@ class Mycheck:
                                         response_prefix=b'').decode('utf-8','ignore')
             self.Text_response.delete('1.0','end')
             self.Text_response.insert(INSERT, self.rawdata)
+            
+            # 转码
+            text = self.response.content.decode('utf-8','ignore')
+            # 保存
+            with open('./EXP/response.html','w',encoding='utf-8') as f:
+                f.write(text)
+                
         except requests.exceptions.Timeout as error:
             messagebox.showinfo(title='请求超时', message=error)
         except requests.exceptions.ConnectionError as error:
@@ -2454,6 +2474,33 @@ class Mynote():
     def __init__(self,root,frmNote):
         self.frmNote = frmNote
         self.root = root
+
+    def CreateFrm(self):
+        self.frm = Frame(self.frmNote, width=960, height=590, bg='white')
+        self.frm.grid_propagate(0)
+        self.frm.grid(row=0, column=0, padx=1, pady=1)
+        
+        self.Text_note = scrolledtext.ScrolledText(self.frm, font=("consolas",10), width=133, height=39)
+        self.Text_note.pack(fill=X, expand=1)
+        
+        with open('./lib/note.txt', mode='r', encoding='utf-8') as f:
+            array = f.readlines()
+            for i in array: #遍历array中的每个元素
+                self.Text_note.insert(INSERT, i)
+        
+    #def rightKey(self, event, menubar):
+    #    menubar.delete(0,END)
+    #    menubar.add_command(label='刷 新',command=self.flushTree)
+    #    menubar.post(event.x_root,event.y_root)
+
+    def start(self):
+        self.CreateFrm()
+'''
+class Mynote():
+    mynote = None#代表漏洞笔记界面对象
+    def __init__(self,root,frmNote):
+        self.frmNote = frmNote
+        self.root = root
         self.mynotes = self.__dict__
         self.list_1 = []
 
@@ -2629,7 +2676,7 @@ class Mynote():
         self.Creatleft()
         self.Creatright()
         self.CreatView()
-
+'''
 #运行状态线程类
 class Job(threading.Thread):
     def __init__(self,*args, **kwargs):
@@ -2848,11 +2895,22 @@ def shownote():
     gui.frmEXP.grid_remove()
     gui.frmCheck.grid_remove()
     #gui.frmDebug.grid_remove()
+    #if Mynote.mynote == None:
+    #    Mynote.mynote = Mynote(gui.root, gui.frmNote)
+    #    Mynote.mynote.start()
+    gui.frmNote.grid(row=1, column=0, padx=2, pady=2)
+    
+'''
+def shownote():
+    gui.frmPOC.grid_remove()
+    gui.frmEXP.grid_remove()
+    gui.frmCheck.grid_remove()
+    #gui.frmDebug.grid_remove()
     if Mynote.mynote == None:
         Mynote.mynote = Mynote(gui.root, gui.frmNote)
         Mynote.mynote.start()
     gui.frmNote.grid(row=1, column=0, padx=2, pady=2)
-
+'''
 #显示漏洞测试界面
 def Check():
     gui.frmPOC.grid_remove()
@@ -2981,14 +3039,16 @@ def note():
 def callbackClose():
     if messagebox.askokcancel('提示','要执行此操作吗?') == True:
         try:
-            save_data = str(exp.TexB1.get('0.0','end'))
+            save_data = str(mynote.Text_note.get('0.0','end'))
             fobj_w = open('./lib/note.txt', 'w',encoding='utf-8')
             fobj_w.writelines(save_data)
             fobj_w.close()
-            sys.exit(0)
+            #sys.exit(0)
             #gui.root.destroy()
         except Exception as e:
             messagebox.showerror(title='保存文件错误!', message=e)
+        finally:
+            sys.exit(0)
 
 #全局函数定义结束
 
@@ -3025,6 +3085,9 @@ if __name__ == "__main__":
     #生成漏洞测试界面
     mycheck = Mycheck(gui.root, gui.frmCheck)
     mycheck.start()
+    #生成漏洞笔记界面
+    mynote = Mynote(gui.root, gui.frmNote)
+    mynote.start()
     #输出重定向
     sys.stdout = TextRedirector(gui.TexB, "stdout")
     sys.stderr = TextRedirector(gui.TexB, "stderr")
