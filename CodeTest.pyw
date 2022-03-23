@@ -1258,8 +1258,6 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
             Ent_B_Top_funtype.set('False')
             Ent_B_Bottom_Left_cmd.set('echo VuLnEcHoPoCSuCCeSS')
 
-
-
 class terminal_cmds():
     cmds_list = ['反弹shell','获取WebShell','清理痕迹']
     def __init__(self,root):
@@ -1548,16 +1546,16 @@ class MyEXP:
         self.root = root
 
     def CreateFrm(self):
-        self.frmTOP = Frame(self.frmEXP, width=960, height=90,bg='white')
-        self.frmBOT = Frame(self.frmEXP, width=960, height=520,bg='white')
+        self.frmTOP = Frame(self.frmEXP, width=960, height=110,bg='white')
+        self.frmBOT = Frame(self.frmEXP, width=960, height=500,bg='white')
 
         self.frmTOP.grid(row=0, column=0, padx=1, pady=1)
         self.frmBOT.grid(row=1, column=0, padx=1, pady=1)
         self.frmTOP.grid_propagate(0)
         self.frmBOT.grid_propagate(0)
 
-        self.frmA = Frame(self.frmTOP, width=560, height=90,bg='white')#目标，输入框
-        self.frmB = Frame(self.frmTOP, width=400, height=90, bg='white')#输出信息
+        self.frmA = Frame(self.frmTOP, width=560, height=110,bg='white')#目标，输入框
+        self.frmB = Frame(self.frmTOP, width=400, height=110, bg='white')#输出信息
         #self.frmC = Frame(self.frmTOP, width=960, height=380, bg='black')#输出信息
         
         #表格布局
@@ -1571,7 +1569,7 @@ class MyEXP:
         #self.frmC.grid_propagate(0)
 
     def CreateFirst(self):
-        self.frame_1 = LabelFrame(self.frmA, text="基本配置", labelanchor="nw", width=550, height=90, bg='white')
+        self.frame_1 = LabelFrame(self.frmA, text="基本配置", labelanchor="nw", width=550, height=110, bg='white')
         #self.frame_2 = LabelFrame(self.frmA, text="参数配置", labelanchor="nw", width=550, height=83, bg='white')
         #self.frame_3 = LabelFrame(self.frmA, text="heads", labelanchor="nw", width=360, height=250, bg='black')
         self.frame_1.grid(row=0, column=0, padx=2, pady=2)
@@ -1611,35 +1609,8 @@ class MyEXP:
         self.comboxlist_3_1.grid(row=2,column=2,padx=1, pady=1,sticky=W)
         self.button_3.grid(row=2,column=3,padx=1, pady=1,sticky=W)
 
-        '''
-        self.label_4 = Label(self.frame_2, text="命令执行(True/False)")
-        self.comboxlist_4 = ttk.Combobox(self.frame_2,width='8',textvariable=Ent_B_Top_funtype,state='readonly') #接受输入控件
-        self.comboxlist_4["values"] = tuple(['True','False'])
-        self.comboxlist_4.bind("<<ComboboxSelected>>", bind_combobox_3)
-
-        self.label_5 = Label(self.frame_2, text="超时时间(Timeout)")
-        self.b5 = Spinbox(self.frame_2,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_timeout)
-
-        self.label_6 = Label(self.frame_2, text="重试次数(retry_time)")
-        self.b6 = Spinbox(self.frame_2,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_time)
-
-        self.label_7 = Label(self.frame_2, text="重试间隔(retry_interval)")
-        self.b7 = Spinbox(self.frame_2,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_interval)
-        
-        self.label_4.grid(row=0,column=0,padx=3, pady=3, sticky=W)
-        self.comboxlist_4.grid(row=0,column=1,padx=3, pady=3, sticky=W)
-
-        self.label_5.grid(row=0,column=2,padx=3, pady=3, sticky=W)
-        self.b5.grid(row=0,column=3,padx=3, pady=3, sticky=W)
-
-        self.label_6.grid(row=1,column=0,padx=3, pady=3, sticky=W)
-        self.b6.grid(row=1,column=1,padx=3, pady=3, sticky=W)      
-
-        self.label_7.grid(row=1,column=2,padx=3, pady=3, sticky=W)
-        self.b7.grid(row=1,column=3,padx=3, pady=3, sticky=W)
-        '''
     def CreateSecond(self):
-        self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=180, bg='white')
+        self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=110, bg='white')
         self.frame_B1.grid(row=0, column=0, padx=2, pady=2)
         self.frame_B1.propagate()
 
@@ -1656,23 +1627,29 @@ class MyEXP:
 
         self.label_7 = Label(self.frame_B1, text="重试间隔(retry_interval)")
         self.b7 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_interval)
+        
+        self.label_8 = Label(self.frame_B1, text="线程数量(pool_num)")
+        self.b8 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_thread_pool)
 
-        self.label_4.grid(row=0,column=0,padx=2, pady=5, sticky=W)
-        self.comboxlist_4.grid(row=0,column=1,padx=2, pady=5, sticky=W)
+        self.label_4.grid(row=0,column=0,padx=2, pady=2, sticky=W)
+        self.comboxlist_4.grid(row=0,column=1,padx=2, pady=2, sticky=W)
 
-        self.label_5.grid(row=0,column=2,padx=2, pady=5, sticky=W)
-        self.b5.grid(row=0,column=3,padx=2, pady=5, sticky=W)
+        self.label_5.grid(row=0,column=2,padx=2, pady=2, sticky=W)
+        self.b5.grid(row=0,column=3,padx=2, pady=2, sticky=W)
 
-        self.label_6.grid(row=1,column=0,padx=2, pady=5, sticky=W)
-        self.b6.grid(row=1,column=1,padx=2, pady=5, sticky=W)      
+        self.label_6.grid(row=1,column=0,padx=2, pady=2, sticky=W)
+        self.b6.grid(row=1,column=1,padx=2, pady=2, sticky=W)      
 
-        self.label_7.grid(row=1,column=2,padx=2, pady=5, sticky=W)
-        self.b7.grid(row=1,column=3,padx=2, pady=5, sticky=W)
+        self.label_7.grid(row=1,column=2,padx=2, pady=2, sticky=W)
+        self.b7.grid(row=1,column=3,padx=2, pady=2, sticky=W)
+    
+        self.label_8.grid(row=2,column=0,padx=2, pady=2, sticky=W)
+        self.b8.grid(row=2,column=1,padx=2, pady=2, sticky=W)
 
     def CreateThird(self):
-        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=520, bg='white')
+        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=500, bg='white')
         self.frmBOT_1_1 = Frame(self.frmBOT_1,width=940, height=30,bg='white')
-        self.frmBOT_1_2 = Frame(self.frmBOT_1,width=940, height=490,bg='white')
+        self.frmBOT_1_2 = Frame(self.frmBOT_1,width=940, height=470,bg='white')
 
         self.frmBOT_1.grid(row=0, column=0 , padx=2, pady=2)
         self.frmBOT_1_1.grid(row=0, column=0 , padx=2, pady=2)
@@ -1683,7 +1660,7 @@ class MyEXP:
         self.frmBOT_1_2.propagate()
 
         self.labelBOT_1 = Label(self.frmBOT_1_1, text="CMD命令")
-        self.EntABOT_1 = Entry(self.frmBOT_1_1, width='100',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
+        self.EntABOT_1 = Entry(self.frmBOT_1_1, width='93',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
         self.EntABOT_1.insert(0, "echo VuLnEcHoPoCSuCCeSS")
         self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行命令",command=lambda :self.thread_it(exeCMD,**{
             'url' : Ent_B_Top_url.get(),
@@ -1693,9 +1670,11 @@ class MyEXP:
             'vuln' : Ent_B_Top_funtype.get(),
             'timeout' : Ent_B_Top_timeout.get(),
             'retry_time' : Ent_B_Top_retry_time.get(),
-            'retry_interval' : Ent_B_Top_retry_interval.get()
+            'retry_interval' : Ent_B_Top_retry_interval.get(),
+            'pool_num' : Ent_B_Top_thread_pool.get(),
             }
         ))
+        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止运行', command=lambda :CancelThread())
         self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda :delText(exp.TexBOT_1_2))
 
         self.ColorImage = PhotoImage(file="./lib/red.png")
@@ -1706,10 +1685,11 @@ class MyEXP:
         self.labelBOT_1.grid(row=0, column=0 , padx=2, pady=2,sticky=W)
         self.EntABOT_1.grid(row=0, column=1 , padx=2, pady=2,sticky=W)
         self.buttonBOT_1.grid(row=0, column=2 , padx=2, pady=2,sticky=W)
-        self.buttonBOT_2.grid(row=0, column=3 , padx=2, pady=2,sticky=W)
-        self.ColorButton.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
+        self.buttonBOT_3.grid(row=0, column=3 , padx=2, pady=2,sticky=W)
+        self.buttonBOT_2.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
+        self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
 
-        self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",10), width=131, height=28, bg='black')
+        self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",10), width=131, height=27, bg='black')
         self.ScrBOT_1_2 = Scrollbar(self.frmBOT_1_2)  #滚动条控件
 
         self.TexBOT_1_2.bind("<Button-3>", lambda x: self.rightKey(x, gui.menubar_1))#绑定右键鼠标事件
@@ -1728,7 +1708,7 @@ class MyEXP:
         self.ColorButton = Button(self.frmBOT_1_1, image=self.ColorImage)
         self.ColorButton["bg"] = "white"
         self.ColorButton["border"] = "0"
-        self.ColorButton.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
+        self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
 
     def rightKey(self, event, menubar):
         menubar.delete(0,END)
@@ -2951,6 +2931,17 @@ def delText(text):
     text.delete('1.0','end')
     text.configure(state="disabled")
 
+#停止线程
+def CancelThread():
+    thread_list = GlobalVar.get_value('thread_list')
+    try:
+        for task in thread_list:
+            task.cancel()
+    except TypeError:
+        messagebox.showinfo(title='提示', message='线程还未启动!')
+    except Exception as e:
+        messagebox.showinfo(title='错误', message=e)
+
 #漏洞利用界面执行命令函数
 def exeCMD(**kwargs):
     if MyEXP.vuln == None:
@@ -3066,7 +3057,7 @@ if __name__ == "__main__":
     #导入变量
     from settings import Proxy_type,Proxy_CheckVar1,Proxy_CheckVar2,Proxy_addr,Proxy_port, scriptPath, curPath,\
         Ent_A_Top_thread, Ent_A_Top_Text, \
-        Ent_B_Top_url,Ent_B_Top_cookie,Ent_B_Top_vulname,Ent_B_Top_vulmethod,Ent_B_Top_funtype,Ent_B_Top_timeout,Ent_B_Top_retry_time,Ent_B_Top_retry_interval,Ent_B_Bottom_Left_cmd,Ent_B_Bottom_terminal_cmd, \
+        Ent_B_Top_url,Ent_B_Top_cookie,Ent_B_Top_vulname,Ent_B_Top_vulmethod,Ent_B_Top_funtype,Ent_B_Top_timeout,Ent_B_Top_retry_time,Ent_B_Top_retry_interval,Ent_B_Top_thread_pool,Ent_B_Bottom_Left_cmd,Ent_B_Bottom_terminal_cmd, \
         Ent_C_Top_url,Ent_C_Top_path,Ent_C_Top_reqmethod,Ent_C_Top_vulname,Ent_C_Top_cmsname,Ent_C_Top_cvename,Ent_C_Top_version,Ent_C_Top_info,Ent_C_Top_template, \
         Ent_Cmds_Top_type,Ent_Cmds_Top_typevar, \
         Ent_yso_Top_type,Ent_yso_Top_class,Ent_yso_Top_cmd, \

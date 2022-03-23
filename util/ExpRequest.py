@@ -1,4 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+-------------------------------------------------
+   File Name：     ExpRequest
+   Description :   Network Requests Class
+   Author :        J_hao
+   date：          2017/7/31
+-------------------------------------------------
+   Change Activity:
+                   2017/7/31:
+-------------------------------------------------
+"""
+__author__ = 'hanhan123'
+
 from requests.models import Response
 from lxml import etree
 from ClassCongregation import color
@@ -213,30 +226,37 @@ class Output(object):
     def result_error(self, error):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ error, 'cyan')
+        return self.pocname+' -> fail'
 
     def timeout_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because timeout !!!", 'cyan')
+        return self.pocname+' -> fail'
 
     def connection_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because unable to connect !!!", 'cyan')
+        return self.pocname+' -> fail'
 
     def error_output(self, error):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" "+ error +" !!!", 'cyan')
+        return self.pocname+' -> fail'
 
-    def no_echo_success(self, method, info):
+    def no_echo_success(self, method, info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info, 'green')
+        return self.pocname+' -> success'
 
-    def echo_success(self, method, info):
+    def echo_success(self, method, info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info +" echo_success", 'green')
+        return self.pocname+' -> success'
 
-    def fail(self):
+    def fail(self, info=''):
         now = datetime.datetime.now()
-        color ("["+str(now)[11:19]+"] " + "[-] The target no "+ self.pocname +"                    ", 'magenta')
+        color ("["+str(now)[11:19]+"] " + "[-] The target no "+ self.pocname + " " + info, 'magenta')
+        return self.pocname+' -> fail'
 
     def to_dict(self):
         return self.__dict__

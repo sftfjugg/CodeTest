@@ -44,9 +44,10 @@ Ent_B_Top_cookie = StringVar(value='暂时无用')#漏洞利用界面_顶部_Coo
 Ent_B_Top_vulname = StringVar(value='请选择漏洞名称')#漏洞利用界面_顶部_漏洞名称_请选择漏洞名称
 Ent_B_Top_vulmethod = StringVar(value='ALL')#漏洞利用界面_顶部_调用方法_ALL
 Ent_B_Top_funtype = StringVar(value='False')#漏洞利用界面_顶部_exp功能_False
-Ent_B_Top_timeout = StringVar(value='5')#漏洞扫描界面_顶部_超时时间_3
-Ent_B_Top_retry_time = StringVar(value='1')#漏洞扫描界面_顶部_重试次数_2
-Ent_B_Top_retry_interval = StringVar(value='1')#漏洞扫描界面_顶部_重试间隔_2
+Ent_B_Top_timeout = StringVar(value='5')#漏洞扫描界面_顶部_超时时间_5
+Ent_B_Top_retry_time = StringVar(value='1')#漏洞扫描界面_顶部_重试次数_1
+Ent_B_Top_retry_interval = StringVar(value='1')#漏洞扫描界面_顶部_重试间隔_1
+Ent_B_Top_thread_pool = StringVar(value='5')#漏洞扫描界面_顶部_线程数量_5
 Ent_B_Bottom_Left_cmd = StringVar()#漏洞利用界面_底部_CMD命令输入框
 Ent_B_Bottom_terminal_cmd = StringVar()#漏洞利用界面_终端_CMD命令输入框
 

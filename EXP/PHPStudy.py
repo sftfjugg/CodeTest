@@ -1,5 +1,5 @@
 from util.ExpRequest import ExpRequest,Output
-from operator import methodcaller
+import util.globalvar as GlobalVar
 from ClassCongregation import Dnslog#通过Dnslog判断
 import base64
 import time
@@ -18,7 +18,6 @@ class PHPStudy():
         self.retry_interval = int(env.get('retry_interval'))
         self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
         self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.status = env.get('status')
 
     def PHPStudyBackdoor(self):
         DL = Dnslog() #申请dnslog地址
@@ -46,12 +45,12 @@ class PHPStudy():
             time.sleep(2)
             if DL.result():
                 info = "存在phpStudyBackdoor脚本漏洞, Payload:{}".format(payload)
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
+                
             else:
-                output.fail()
+                return output.fail()
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
     def PHPStudyphpmyadmin(self):
         appName = 'PHPStudy'
@@ -80,12 +79,12 @@ class PHPStudy():
 
             if resp2.lower().find('navigation.php')!=-1 and resp.lower().find('frame_navigation')!=-1:
                 info = "存在phpstudy_phpmyadmin默认密码漏洞"
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
+                
             else:
-                output.fail()
+                return output.fail()
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
     def PHPStudyProbe(self):
         appName = 'PHPStudy'
@@ -103,27 +102,39 @@ class PHPStudy():
 
             if resp.lower().find('php_version')!=-1 and resp.lower().find('phpstudy')!=-1:
                 info = "存在phpstudy探针泄露漏洞"
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
+                
             else:
-                output.fail()
+                return output.fail()
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
 def check(**kwargs):
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
     result_list = []
+    thread_list = []
     result_list.append('----------------------------')
+    #5代表只能开启5个进程, 不加默认使用cpu的进程数
+    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     ExpPHPStudy = PHPStudy(**kwargs)
     if kwargs['pocname'] != 'ALL':
-        func = getattr(ExpPHPStudy, kwargs['pocname'])#返回对象函数属性值，可以直接调用
-        func()#调用函数
-        return ExpPHPStudy.status
-    else:#调用所有函数
+        #返回对象函数属性值，可以直接调用
+        func = getattr(ExpPHPStudy, kwargs['pocname'])
+        #调用函数
+        return func()
+    #调用所有函数
+    else:
         for func in dir(PHPStudy):
             if not func.startswith("__"):
-                methodcaller(func)(ExpPHPStudy)
-                result_list.append(func+' -> '+ExpPHPStudy.status)
-                ExpPHPStudy.status = 'fail'
+                thread_list.append(pool.submit(getattr(ExpPHPStudy, func)))
+        #保存全局子线程列表
+        GlobalVar.set_value('thread_list', thread_list)
+        #等待所有多线程任务运行完
+        wait(thread_list, return_when=ALL_COMPLETED)
+        for task in thread_list:
+            #去除取消掉的future任务
+            if task.cancelled() == False:
+                result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
 

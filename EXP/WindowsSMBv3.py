@@ -1,5 +1,5 @@
 from util.ExpRequest import ExpRequest,Output
-from operator import methodcaller
+import util.globalvar as GlobalVar
 import socket
 import struct
 class WindowsSMBv3():
@@ -17,7 +17,6 @@ class WindowsSMBv3():
         self.retry_interval = int(env.get('retry_interval'))
         self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
         self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.status = env.get('status')
 
     def CVE_2020_0796(self):
         appName = 'Windows'
@@ -40,28 +39,38 @@ class WindowsSMBv3():
             nb, = struct.unpack(">I", sock.recv(4))
             res = sock.recv(nb)
             if (not res[68:70] == b"\x11\x03") or (not res[70:72] == b"\x02\x00"):
-                output.fail()
+                return output.fail()
             else:
                 info = "{}存在WindowsSMBv3协议漏洞(CVE-2020-0796), IP值:{}".format(self.url,ip)
-                output.echo_success(method, info)
-                self.status = 'success'
+                return output.echo_success(method, info)
         except Exception as error:
-            output.error_output(str(error))
+            return output.error_output(str(error))
 
 def check(**kwargs):
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
     result_list = []
+    thread_list = []
     result_list.append('----------------------------')
+    #5代表只能开启5个进程, 不加默认使用cpu的进程数
+    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     ExpWindowsSMBv3 = WindowsSMBv3(**kwargs)
     if kwargs['pocname'] != 'ALL':
-        func = getattr(ExpWindowsSMBv3, kwargs['pocname'])#返回对象函数属性值，可以直接调用
-        func()#调用函数
-        return ExpWindowsSMBv3.status
-    else:#调用所有函数
+        #返回对象函数属性值，可以直接调用
+        func = getattr(ExpWindowsSMBv3, kwargs['pocname'])
+        #调用函数
+        return func()
+    #调用所有函数
+    else:
         for func in dir(WindowsSMBv3):
             if not func.startswith("__"):
-                methodcaller(func)(ExpWindowsSMBv3)
-                result_list.append(func+' -> '+ExpWindowsSMBv3.status)
-                ExpWindowsSMBv3.status = 'fail'
+                thread_list.append(pool.submit(getattr(ExpWindowsSMBv3, func)))
+        #保存全局子线程列表
+        GlobalVar.set_value('thread_list', thread_list)
+        #等待所有多线程任务运行完
+        wait(thread_list, return_when=ALL_COMPLETED)
+        for task in thread_list:
+            #去除取消掉的future任务
+            if task.cancelled() == False:
+                result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
-
