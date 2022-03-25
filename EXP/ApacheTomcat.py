@@ -19,9 +19,9 @@ class ApacheTomcat():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = int(env.get('timeout'))
-        self.retry_time = int(env.get('retry_time'))
-        self.retry_interval = int(env.get('retry_interval'))
+        self.timeout = env.get('timeout')
+        self.retry_time = env.get('retry_time')
+        self.retry_interval = env.get('retry_interval')
         self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
         self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
 
@@ -58,9 +58,10 @@ class ApacheTomcat():
         try:
             request = exprequest.get(self.url+path, timeout=self.timeout, verify=False)
             if request.status_code == 200 and r"Session ID:" in request.text:
+                #output.echo_success(method, info)
                 return output.echo_success(method, info)
-                
             else:
+                #output.echo_success(method, info)
                 return output.fail()
         except Exception as error:
             return output.error_output(str(error))       
@@ -88,7 +89,6 @@ class ApacheTomcat():
                 if ':-)' in request.text:
                     info = "[upload]"+" [url:"+self.url+"/"+name+".jsp ]"
                     return output.echo_success(method, info)
-                    
                 else:
                     return output.fail()
             #_attack
@@ -211,7 +211,7 @@ def check(**kwargs):
     thread_list = []
     result_list.append('----------------------------')
     #5代表只能开启5个进程, 不加默认使用cpu的进程数
-    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
+    pool = ThreadPoolExecutor(kwargs['pool_num'])
     ExpApacheTomcat = ApacheTomcat(**kwargs)
     if kwargs['pocname'] != 'ALL':
         #返回对象函数属性值，可以直接调用
@@ -230,7 +230,10 @@ def check(**kwargs):
         for task in thread_list:
             #去除取消掉的future任务
             if task.cancelled() == False:
-                result_list.append(task.result())
+                if task.result() is None:
+                    result_list.append('函数没有返回值')
+                else:   
+                    result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
 

@@ -85,7 +85,10 @@ def check(**kwargs):
         for task in thread_list:
             #去除取消掉的future任务
             if task.cancelled() == False:
-                result_list.append(task.result())
+                if task.result() is None:
+                    result_list.append('函数没有返回值')
+                else:   
+                    result_list.append(task.result())
     result_list.append('----------------------------')
     return '\n'.join(result_list)
 

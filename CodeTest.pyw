@@ -1,4 +1,5 @@
 # -*- coding:UTF-8 -*-
+from dataclasses import replace
 from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog,PhotoImage
 from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,Y,X,S,W,E,N
 from tkinter.filedialog import askopenfilename
@@ -1312,7 +1313,8 @@ class Loadfile():
         self.menubar.add_command(label = "添加https", command=self.addhttps)
         self.menubar.add_command(label = "base64解码", command=self.de_base64)
         self.menubar.add_command(label = "空字符分隔", command=self.split_null)
-        self.menubar.add_command(label = "长字符格式化", command=self.long_Beautify)
+        self.menubar.add_command(label = "移除末尾状态码", command=self.remove_status)
+        #self.menubar.add_command(label = "长字符格式化", command=self.long_Beautify)
 
         #显示菜单
         self.file.config(menu = self.menubar)
@@ -1432,6 +1434,25 @@ class Loadfile():
             short_str += prefix + _str + suffix + "\n"
             
         self.TexA.insert(INSERT, short_str)
+        MyGUI.now_text = self.TexA.get('0.0','end')
+        
+    def remove_status(self):        
+        MyGUI.now_text = self.TexA.get('0.0','end')
+        self.TexA.delete('1.0','end')
+        array = MyGUI.now_text.split("\n")
+        array = [i for i in array if i!='']
+        #print(array)
+        index = 1
+        for i in array:
+            try:
+                i = i.replace(re.search(r'[0-9]{3}$',i).group(), '')
+            except Exception:
+                pass
+            if index == len(array):
+                self.TexA.insert(INSERT, i)
+            else:
+                self.TexA.insert(INSERT, i+'\n')
+            index = index+1
         MyGUI.now_text = self.TexA.get('0.0','end')
 
 #编辑代码界面类
@@ -1629,7 +1650,7 @@ class MyEXP:
         self.b7 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_interval)
         
         self.label_8 = Label(self.frame_B1, text="线程数量(pool_num)")
-        self.b8 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_thread_pool)
+        self.b8 = Spinbox(self.frame_B1,from_=1,to=30,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_thread_pool)
 
         self.label_4.grid(row=0,column=0,padx=2, pady=2, sticky=W)
         self.comboxlist_4.grid(row=0,column=1,padx=2, pady=2, sticky=W)
@@ -1668,10 +1689,10 @@ class MyEXP:
             'cmd' : Ent_B_Bottom_Left_cmd.get(),
             'pocname' : Ent_B_Top_vulmethod.get(),
             'vuln' : Ent_B_Top_funtype.get(),
-            'timeout' : Ent_B_Top_timeout.get(),
-            'retry_time' : Ent_B_Top_retry_time.get(),
-            'retry_interval' : Ent_B_Top_retry_interval.get(),
-            'pool_num' : Ent_B_Top_thread_pool.get(),
+            'timeout' : int(Ent_B_Top_timeout.get()),
+            'retry_time' : int(Ent_B_Top_retry_time.get()),
+            'retry_interval' : int(Ent_B_Top_retry_interval.get()),
+            'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         ))
         self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止运行', command=lambda :CancelThread())
@@ -2968,8 +2989,8 @@ def exeCMD(**kwargs):
         print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
         return
     elif MyGUI.now_text.strip('\n'):
-        file_list = [i for i in MyGUI.now_text.split("\n") if i!='']#去空处理
-        executor = ThreadPoolExecutor(max_workers = 3)
+        file_list = [i for i in MyGUI.now_text.split("\n") if i != '']#去空处理
+        executor = ThreadPoolExecutor(max_workers = kwargs['pool_num'])
         dict_list = []#存储字典参数列表
         url_list = []#存储目标列表
         index_list = []#索引列表
@@ -2987,7 +3008,10 @@ def exeCMD(**kwargs):
             index += 1
         try:
             for data in executor.map(lambda kwargs: MyEXP.vuln.check(**kwargs), dict_list):
-                result_list.append(data+'\n')#汇聚结果
+                if data is None:
+                    result_list.append('函数没有返回值'+'\n')#汇聚结果
+                else:
+                    result_list.append(data+'\n')#汇聚结果
         except Exception as e:
             result_list.append('请求发生异常, 请删除该URL')
         #for i in range(len(url_list)):
