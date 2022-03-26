@@ -8,7 +8,7 @@
 >
 >可视化界面开发库: Tkinter
 >
->python版本: 3.5+
+>python版本: 3.7+
 
 ### :bulb:POC\EXP 参考链接
 
