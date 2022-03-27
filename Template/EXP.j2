@@ -2,8 +2,7 @@ from util.ExpRequest import ExpRequest,Output
 import util.globalvar as GlobalVar
 import prettytable as pt
 """
-import util.globalvar as GlobalVar
-from ClassCongregation import ysoserial_payload,Dnslog
+from ClassCongregation import Dnslog
 DL = Dnslog()
 DL.dns_host()
 DL.result()
@@ -18,9 +17,9 @@ class {{service.entry_nodes.vulname}}():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = int(env.get('timeout'))
-        self.retry_time = int(env.get('retry_time'))
-        self.retry_interval = int(env.get('retry_interval'))
+        self.timeout = env.get('timeout')
+        self.retry_time = env.get('retry_time')
+        self.retry_interval = env.get('retry_interval')
             
     def {{service.entry_nodes.cvename}}(self):
         appName = '{{service.entry_nodes.vulname}}'
@@ -31,7 +30,7 @@ class {{service.entry_nodes.vulname}}():
         data = '{{service.header_nodes.content.data}}'
         headers = {{service.header_nodes.headinfo.header}}
         #输出类
-        output = Output(pocname)
+        output = Output(self.url, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
         try:
@@ -53,19 +52,14 @@ tb.align['Target type'] = 'l'
 tb.align['Vuln Name'] = 'l'
 tb.align['Impact Version && Vulnerability description'] = 'l'
 tb.add_row([
-    "{{service.entry_nodes.vulname}}",
-    "{{service.entry_nodes.cvename}}",
-    "{{service.entry_nodes.infoname}} {{service.entry_nodes.banner}}"
+    '{{service.entry_nodes.vulname}}',
+    '{{service.entry_nodes.cvename}}',
+    '{{service.entry_nodes.infoname}} {{service.entry_nodes.banner}}'
 ])
 print(tb)
 
 def check(**kwargs):
-    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
-    result_list = []
     thread_list = []
-    result_list.append('----------------------------')
-    #5代表只能开启5个进程, 不加默认使用cpu的进程数
-    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     Exp{{service.entry_nodes.vulname}} = {{service.entry_nodes.vulname}}(**kwargs)
     if kwargs['pocname'] != 'ALL':
         #返回对象函数属性值，可以直接调用
@@ -76,17 +70,6 @@ def check(**kwargs):
     else:
         for func in dir({{service.entry_nodes.vulname}}):
             if not func.startswith("__"):
-                thread_list.append(pool.submit(getattr(Exp{{service.entry_nodes.vulname}}, func)))
+                thread_list.append(kwargs['pool'].submit(getattr(Exp{{service.entry_nodes.vulname}}, func)))
         #保存全局子线程列表
-        GlobalVar.set_value('thread_list', thread_list)
-        #等待所有多线程任务运行完
-        wait(thread_list, return_when=ALL_COMPLETED)
-        for task in thread_list:
-            #去除取消掉的future任务
-            if task.cancelled() == False:
-                if task.result() is None:
-                    result_list.append('函数没有返回值')
-                else:   
-                    result_list.append(task.result())
-    result_list.append('----------------------------')
-    return '\n'.join(result_list)
+        GlobalVar.add_value('thread_list', thread_list)

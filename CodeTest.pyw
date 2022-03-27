@@ -1061,8 +1061,8 @@ class Proxy_pool():
             menubar.add_command(label='复制',command=self.copy_select)
             menubar.add_command(label='删除',command=self.del_select)
             menubar.add_command(label='设置为当前代理', command=lambda:self.set_proxy(ip,port))
-            menubar.add_command(label='检测普通代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=False))
-            menubar.add_command(label='检测高匿代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=True))
+            menubar.add_command(label='根据协议类型检测代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=False))
+            #menubar.add_command(label='检测高匿代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=True))
             #menubar.add_command(label='检测HTTP代理存活', command=lambda:self.set_proxy(ip,port,pro))
             #menubar.add_command(label='检测HTTPS代理存活', command=lambda:self.set_proxy(ip,port,pro))
             #menubar.add_command(label='开启全局代理连接池', command=lambda :self.thread_it(self.start_proxy))
@@ -1083,13 +1083,13 @@ class Proxy_pool():
             #自定义值
             variable_dict["Proxy_CheckVar1"].set(1)
             variable_dict["Proxy_CheckVar2"].set(0)
-            variable_dict["PROXY_TYPE"].set(pro)
+            variable_dict["PROXY_TYPE"].set('HTTP/HTTPS')
             variable_dict["Proxy_addr"].set(ip)
             variable_dict["Proxy_port"].set(port)
             #代理全局
             os.environ['HTTP_PROXY'] = ip+':'+port
             os.environ['HTTPS_PROXY'] = ip+':'+port
-            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%(pro,ip,port))
+            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%('HTTP/HTTPS',ip,port))
             #now = datetime.datetime.now()
             #print("["+str(now)[11:19]+"] " + "[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s"%(pro,ip,port))
             #messagebox.showinfo(title='提示', message='设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%(pro,ip,port))
@@ -1206,14 +1206,15 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
         commandinput.delete(0,'end')#删除控件里输入的文本
 
         self.thread_it(self.exeCMD,**{
-            'url':Ent_B_Top_url.get(),
-            'cookie':Ent_B_Top_cookie.get(),
-            'cmd':terminal_infos.input_list[-1],
-            'pocname':Ent_B_Top_vulmethod.get(),
-            'vuln':Ent_B_Top_funtype.get(),
-            'timeout':Ent_B_Top_timeout.get(),
-            'retry_time':Ent_B_Top_retry_time.get(),
-            'retry_interval':Ent_B_Top_retry_interval.get()
+            'url' : Ent_B_Top_url.get().strip('/'),
+            'cookie' : Ent_B_Top_cookie.get(),
+            'cmd' : Ent_B_Bottom_Left_cmd.get(),
+            'pocname' : Ent_B_Top_vulmethod.get(),
+            'vuln' : Ent_B_Top_funtype.get(),
+            'timeout' : int(Ent_B_Top_timeout.get()),
+            'retry_time' : int(Ent_B_Top_retry_time.get()),
+            'retry_interval' : int(Ent_B_Top_retry_interval.get()),
+            'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         )
 
@@ -1684,7 +1685,7 @@ class MyEXP:
         self.EntABOT_1 = Entry(self.frmBOT_1_1, width='93',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
         self.EntABOT_1.insert(0, "echo VuLnEcHoPoCSuCCeSS")
         self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行命令",command=lambda :self.thread_it(exeCMD,**{
-            'url' : Ent_B_Top_url.get(),
+            'url' : Ent_B_Top_url.get().strip('/'),
             'cookie' : Ent_B_Top_cookie.get(),
             'cmd' : Ent_B_Bottom_Left_cmd.get(),
             'pocname' : Ent_B_Top_vulmethod.get(),
@@ -2954,87 +2955,127 @@ def delText(text):
 
 #停止线程
 def CancelThread():
+    '''
+    while True:
+        thread_list = GlobalVar.get_value('thread_list')
+        for task in thread_list:
+            task.cancel()
+        thread_list = GlobalVar.get_value('thread_list')
+        for task in thread_list:
+            if task.done() == False:
+                break
+        else:
+            break
+        continue
+    '''     
     thread_list = GlobalVar.get_value('thread_list')
     try:
         for task in thread_list:
             task.cancel()
-    except TypeError:
-        messagebox.showinfo(title='提示', message='线程还未启动!')
+    except TypeError as e:
+        messagebox.showinfo(title='提示', message='TypeError: '+e)
     except Exception as e:
         messagebox.showinfo(title='错误', message=e)
 
 #漏洞利用界面执行命令函数
 def exeCMD(**kwargs):
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
     if MyEXP.vuln == None:
         messagebox.showinfo(title='提示', message='还未选择模块')
         return
-    kwargs['status'] = 'fail'
-    start = time.time()
+    #开始标志
     exp.color_switch('green')
-    #now = datetime.datetime.now()
-    #print("["+str(now)[11:19]+"] " + "[*] 开始执行测试")
-    print("[*]开始执行测试: %s"%kwargs['url'].strip('/'))
-    #多模块测试
+    start = time.time()
+    #初始化全局子线程列表
+    pool = ThreadPoolExecutor(kwargs['pool_num'])
+    kwargs['pool'] = pool
+    GlobalVar.set_value('thread_list', [])
+    print("[*]开始执行测试: %s"%kwargs['url'])
+    #单模块测试
     if kwargs['url']:
         #单目标执行
         try:
-            kwargs['url'] = kwargs['url'].strip('/')
+            print("[*]正在装填线程列表, 即将开始测试!")
             MyEXP.vuln.check(**kwargs)
+            wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
         except Exception as e:
             print('出现错误: %s'%e)
+        #结束标志
         exp.color_switch('red')
         end = time.time()
-        #now = datetime.datetime.now()
-        #print("["+str(now)[11:19]+"] " + "[*] 共花费时间：{} 秒".format(seconds2hms(end - start)))
         print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
-        return
+    #多模块测试
     elif MyGUI.now_text.strip('\n'):
-        file_list = [i for i in MyGUI.now_text.split("\n") if i != '']#去空处理
-        executor = ThreadPoolExecutor(max_workers = kwargs['pool_num'])
-        dict_list = []#存储字典参数列表
-        url_list = []#存储目标列表
-        index_list = []#索引列表
-        type_list = []#脚本名称列表
-        result_list = []#存储结果列表
+        #去空处理
+        file_list = [i for i in MyGUI.now_text.split("\n") if i != '']        
+        #存储字典参数列表
+        dict_list = []
         name = MyEXP.vuln.__name__.replace('EXP.','')
-        index = 1
         for url in file_list:
             dict_temp = kwargs.copy()
             dict_temp['url'] = url.strip('/')
-            url_list.append(url)
             dict_list.append(dict_temp)
-            index_list.append(index)
-            type_list.append(name)
-            index += 1
+        #装填非多线程
+        print("[*]正在装填线程列表, 即将开始测试!")
+        for kwargs in dict_list:
+            MyEXP.vuln.check(**kwargs)
+        #阻塞主线程，直到满足条件
+        #FIRST_COMPLETED（完成1个）
+        #FIRST_EXCEPTION（报错1个）
+        #ALL_COMPLETED（完成所有）
+        wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
+        
+        #根据结果生成表格
+        tb = pt.PrettyTable()
+        tb.field_names = ["Index", "Type", "Result"]
+        tb.align['Type'] = 'l'
+        tb.align['Result'] = 'l'
+        
+        #当前线程列表
+        index = 1
+        for future in GlobalVar.get_value('thread_list'):
+            #去除取消掉的future任务
+            if future.cancelled() == False:
+                if future.result() is None:
+                    tb.add_row([str(index), name, 'None, Notice:function no return'])
+                else:
+                    tb.add_row([str(index), name, future.result()])
+                index += 1
+        print(tb)                    
+        
+        '''
         try:
             for data in executor.map(lambda kwargs: MyEXP.vuln.check(**kwargs), dict_list):
                 if data is None:
-                    result_list.append('函数没有返回值'+'\n')#汇聚结果
+                    #汇聚结果
+                    result_list.append('函数没有返回值'+'\n')
                 else:
-                    result_list.append(data+'\n')#汇聚结果
+                    #汇聚结果
+                    result_list.append(data+'\n')
         except Exception as e:
             result_list.append('请求发生异常, 请删除该URL')
         #for i in range(len(url_list)):
         #    index_list.append(i+1)
         #    type_list.append(name)
         #index_list = [i+1 for i in range(len(url_list))]
-        print_result = zip(index_list, type_list, file_list, result_list)#合并列表
+        #合并列表
+        #print_result = zip(index_list, type_list, file_list, result_list)
         #根据结果生成表格
-        tb = pt.PrettyTable()
-        tb.field_names = ["Index", "Type", "URL", "Result"]
-        tb.align['Type'] = 'l'
-        tb.align['URL'] = 'l'
-        tb.align['Result'] = 'l'
-        for i in print_result:
-            tb.add_row(i)
-        print(tb)
+        #tb = pt.PrettyTable()
+        #tb.field_names = ["Index", "Type", "URL", "Result"]
+        #tb.align['Type'] = 'l'
+        #tb.align['URL'] = 'l'
+        #tb.align['Result'] = 'l'
+        #for i in print_result:
+        #    tb.add_row(i)
+        #print(tb)
         #MyEXP.output = tb.get_html_string()
+        '''
         with open('./EXP/output.html', "wb") as f:
             f.write(tb.get_html_string().encode('utf8'))
+        #结束标志
         exp.color_switch('red')
         end = time.time()
-        #now = datetime.datetime.now()
-        #print("["+str(now)[11:19]+"] " + "[*] 共花费时间：{} 秒".format(seconds2hms(end - start)))
         print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
     else:
         color('[*]请输入目标URL!','red')

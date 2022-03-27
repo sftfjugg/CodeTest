@@ -1,10 +1,13 @@
-import requests
 from requests.packages import urllib3
-urllib3.disable_warnings()
-import base64
 from lxml import etree
+import requests
+import base64
+import re
+import os
 
-token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY0NjMzODk5NywiaXNzIjoicmVmcmVzaCJ9.Aqfrl1A0C-WE_T5ZER2eaylK0SdJfWULS8bbnvqWSjlyFzNubPJjbPCqU9nJdKZwTPPUUXp6WBVw33R_tCVAbg'
+urllib3.disable_warnings()
+
+token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY0ODYwNjY0NiwiaXNzIjoicmVmcmVzaCJ9.wxOabh_DNP9Ncx-GseyCxzOc-7cOqi6QoVgve6CszA6RG9Bbm64-Y2FlmwzQrs-j5a3NHxQBoEMVv7hyt0E0jg'
 
 fofa_token = token
 refresh_token = token
@@ -47,11 +50,26 @@ def pag_num_fun(word):
     try:
     #pag_num:获取到的页面总数量
         pag_num = tree.xpath('//div[@id="__layout"]//div[@class="pagFooter"]/div[@class="el-pagination"]/ul[@class="el-pager"]/li/text()')[-1]
+    except Exception as IndexError:
+        print('[-]Token过期, 请先登录!')
     except Exception as error:
         print('[-]查询目标无结果,请确认查询语法.详细错误为：%s'%type(error))
         #return
         #raise Exception("")
     print('[*]FOFA爬取页面数量为: '+ pag_num)
+    '''
+    try:
+        divs = tree.xpath('//div[@class="titleLeft"]')
+        for div in divs:
+            country = div.xpath('./a/text()')[0]
+            href = div.xpath('./a/@href')[0]
+            qbase64 = re.search('qbase64=(.*)$', href)[1]
+            query = base64.b64decode(qbase64).decode()#解密
+            print('[*]地区: %s, 语法: %s'%(country, query))
+    except Exception as e:
+        print(e)
+        pass
+    '''
     return pag_num
 
 #定义爬取页面ip的函数
@@ -95,7 +113,7 @@ def fofa(word, pag_num, num = 5):
     for url in ip_list_new:
         print(url)
 
-print("用法: 在目标处输入查询语法,需要编辑源码修改refresh_token (普通用户默认查询5页)")
+print("用法: 在目标处输入查询语法,需要编辑源码修改refresh_token (普通用户默认查询2页)")
 def check(**kwargs):
     try:
         pag_num = pag_num_fun(kwargs['url'])
@@ -104,8 +122,20 @@ def check(**kwargs):
         print(type(e))
 
 if __name__ == '__main__':
-    pag_num = pag_num_fun('app=\"Shiro权限管理系统\"')
-    fofa('app=\"Shiro权限管理系统\"', pag_num)
+    #os.environ['HTTP_PROXY'] = '127.0.0.1:8080'
+    #os.environ['HTTPS_PROXY'] = '127.0.0.1:8080'
+    pag_num = pag_num_fun('app=\"Landray-OA系统\"')
+    fofa('app=\"Landray-OA系统\"', pag_num)
+
+
+
+
+
+
+
+
+
+
 
 
 

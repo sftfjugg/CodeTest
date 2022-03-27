@@ -1,26 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-   File Name：     ExpRequest
-   Description :   Network Requests Class
-   Author :        J_hao
-   date：          2017/7/31
--------------------------------------------------
-   Change Activity:
-                   2017/7/31:
--------------------------------------------------
-"""
-__author__ = 'hanhan123'
-
 from requests.models import Response
 from lxml import etree
 from ClassCongregation import color
 from settings import Ent_B_Top_timeout,Ent_B_Top_retry_time,Ent_B_Top_retry_interval
-import re
 import requests
 import datetime
 import random
 import time
+import re
 
 from Proxy.handler.logHandler import LogHandler
 
@@ -178,6 +165,42 @@ class ExpRequest(object):
                 self.log.info("retry %s second after" % retry_interval)
                 time.sleep(retry_interval)     
 
+    def delete(self, url, headers=None, retry_time=3, retry_interval=3, timeout=3, *args, **kwargs):
+        """
+        delete method
+        :param url: target url
+        :param headers: headers
+        :param retry_time: retry time
+        :param retry_interval: retry interval
+        :param timeout: network timeout
+        :return:
+        """
+        retry_time = self.retry_time
+        retry_interval = self.retry_interval
+        timeout = self.timeout
+        header = self.header
+        if headers and isinstance(headers, dict):
+            header.update(headers)
+        while True:
+            try:
+                self.response = requests.delete(url, headers=header, timeout=timeout, *args, **kwargs)
+                return self
+            except Exception as error:
+                if isinstance(error, requests.exceptions.Timeout):
+                    self.output.timeout_output()
+                elif isinstance(error, requests.exceptions.ConnectionError):
+                    self.output.connection_output()
+                else:
+                    self.output.error_output(str(type(error)))
+                #self.log.error("requests: %s error: %s" % (url, str(error)))
+                retry_time -= 1
+                if retry_time <= 0:
+                    raise Exception('{} , 请检查网络环境!'.format(str(type(error))))
+                    #resp = Response()
+                    #resp.status_code = 500
+                    #return self
+                self.log.info("retry %s second after" % retry_interval)
+                time.sleep(retry_interval)
     @property
     def code(self):
         encodings = requests.utils.get_encodings_from_content(self.response.text)
@@ -216,47 +239,48 @@ class ExpRequest(object):
 
 #结果输出
 class Output(object):
-    def __init__(self, pocname=''):
+    def __init__(self, url='', pocname=''):
         self.error_msg = tuple()
         self.result = {}
         self.params = {}
         self.status = {}
+        self.url = url
         self.pocname = pocname
 
-    def result_error(self, error):
+    def result_error(self, error=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ error, 'cyan')
-        return self.pocname+' -> fail'
+        return self.url+'   ' + self.pocname + ' -> fail'
 
     def timeout_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because timeout !!!", 'cyan')
-        return self.pocname+' -> fail'
+        return self.url+'   ' + self.pocname + ' -> fail'
 
     def connection_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because unable to connect !!!", 'cyan')
-        return self.pocname+' -> fail'
+        return self.url+'   ' + self.pocname + ' -> fail'
 
-    def error_output(self, error):
+    def error_output(self, error=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" "+ error +" !!!", 'cyan')
-        return self.pocname+' -> fail'
+        return self.url+'   ' + self.pocname + ' -> fail'
 
-    def no_echo_success(self, method, info=''):
+    def no_echo_success(self, method='', info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info, 'green')
-        return self.pocname+' -> success'
+        return self.url+'   ' + self.pocname + ' -> success'
 
-    def echo_success(self, method, info=''):
+    def echo_success(self, method='', info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info +" echo_success", 'green')
-        return self.pocname+' -> success'
+        return self.url+'   ' + self.pocname + ' -> success'
 
     def fail(self, info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[-] The target no "+ self.pocname + " " + info, 'magenta')
-        return self.pocname+' -> fail'
+        return self.url+'   ' + self.pocname + ' -> fail'
 
     def to_dict(self):
         return self.__dict__

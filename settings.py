@@ -44,10 +44,10 @@ Ent_B_Top_cookie = StringVar(value='暂时无用')#漏洞利用界面_顶部_Coo
 Ent_B_Top_vulname = StringVar(value='请选择漏洞名称')#漏洞利用界面_顶部_漏洞名称_请选择漏洞名称
 Ent_B_Top_vulmethod = StringVar(value='ALL')#漏洞利用界面_顶部_调用方法_ALL
 Ent_B_Top_funtype = StringVar(value='False')#漏洞利用界面_顶部_exp功能_False
-Ent_B_Top_timeout = StringVar(value='5')#漏洞扫描界面_顶部_超时时间_5
+Ent_B_Top_timeout = StringVar(value='3')#漏洞扫描界面_顶部_超时时间_5
 Ent_B_Top_retry_time = StringVar(value='1')#漏洞扫描界面_顶部_重试次数_1
 Ent_B_Top_retry_interval = StringVar(value='1')#漏洞扫描界面_顶部_重试间隔_1
-Ent_B_Top_thread_pool = StringVar(value='5')#漏洞扫描界面_顶部_线程数量_5
+Ent_B_Top_thread_pool = StringVar(value='10')#漏洞扫描界面_顶部_线程数量_10
 Ent_B_Bottom_Left_cmd = StringVar()#漏洞利用界面_底部_CMD命令输入框
 Ent_B_Bottom_terminal_cmd = StringVar()#漏洞利用界面_终端_CMD命令输入框
 
@@ -58,7 +58,7 @@ Ent_C_Top_reqmethod = StringVar(value='GET')#漏洞测试界面_顶部_请求方
 Ent_C_Top_vulname = StringVar(value='用作类名, 不能包含空格')#漏洞测试界面_顶部_脚本名称
 Ent_C_Top_cmsname = StringVar(value='')#漏洞测试界面_顶部_CMS名称
 Ent_C_Top_cvename = StringVar(value='cve_')#漏洞测试界面_顶部_CVE编号
-Ent_C_Top_version = StringVar(value='app=\'\'')#漏洞测试界面_顶部_版本信息
+Ent_C_Top_version = StringVar(value='app=""')#漏洞测试界面_顶部_版本信息
 Ent_C_Top_info = StringVar(value='命令执行描述')#漏洞测试界面_顶部_info_命令执行描述
 Ent_C_Top_template = StringVar(value='请选择模板')#漏洞测试界面_顶部_template_请选择模板
 
