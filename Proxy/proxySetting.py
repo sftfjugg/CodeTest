@@ -65,7 +65,7 @@ HTTP_URL = "http://httpbin.org/ip"
 HTTPS_URL = "https://httpbin.org/ip"
 
 # 代理验证时超时时间
-VERIFY_TIMEOUT = 5
+VERIFY_TIMEOUT = 3
 
 # 近PROXY_CHECK_COUNT次校验中允许的最大失败次数,超过则剔除代理
 MAX_FAIL_COUNT = 0
