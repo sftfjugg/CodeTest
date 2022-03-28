@@ -9,6 +9,8 @@
 >可视化界面开发库: Tkinter
 >
 >python版本: 3.7+
+>
+>推荐系统: win7、8、10、11
 
 ### :bulb:POC\EXP 参考链接
 
