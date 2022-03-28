@@ -1,51 +1,37 @@
-import random,requests,datetime,time,binascii,subprocess,re,sys,os,webbrowser
+import random,requests,time,binascii,subprocess,re,sys,os,webbrowser
 import xml.etree.ElementTree as ET
 import base64
-import logging
 import threading
+import json
 from tkinter import END
 from urllib.parse import urlparse
 from Crypto.Cipher import DES
 from urllib import request
 from lxml import etree
 
-logging.basicConfig(level=logging.INFO,  
-            format='%(asctime)s %(message)s',
-            datefmt='%Y-%m-%d  %H:%M:%S %a ',
-            filename='./log/info.txt',
-            filemode='a')
+#logging.basicConfig(level=logging.INFO,  
+#            format='%(asctime)s %(message)s',
+#            datefmt='%Y-%m-%d  %H:%M:%S %a ',
+#            filename='./log/info.txt',
+#            filemode='a')
 #Dnslog判断
 class Dnslog:
     def __init__(self):
         self.header = {
 		'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36',
-		'Connection':'close'}
-        #该网站是通过PHPSESSID来判断dns归属谁的所以可以随机一个
-        #h = "abcdefghijklmnopqrstuvwxyz0123456789"
-        #salt_cookie = ""
-        #for i in range(26):
-        #    salt_cookie += random.choice(h)
-        #self.headers = {
-        #    "Cookie": "PHPSESSID="+salt_cookie
-        #}
-        #H = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        #salt = ""
-        #for i in range(15):
-        #    salt += random.choice(H)
+		'Connection':'close',
+        }
         try:
             self.host = self.get_dnslog_url()
-           # self.host = str(salt + "." + self.get_dnslog_url())
         except Exception as e:
             print(e)
             self.host=""
 
     def dns_host(self) -> str:
-        #return test.dnslog.cn
         return str(self.host)
 
     def get_dnslog_url(self):
         try:
-            #self.dnslog_cn=requests.get("http://www.dnslog.cn/getdomain.php",headers=self.headers,timeout=6).text
             rep = requests.get('http://dnslog.cn/getdomain.php', headers=self.header, timeout=15)
             self.cookie = re.search('=(.*);', rep.headers['Set-Cookie'])
             self.dnslog_cn = rep.text  #获取测试域名
@@ -54,7 +40,6 @@ class Dnslog:
             print("[-]获取DOSLOG域名出错%s"%e)
 
     def result(self) -> bool:
-        # DNS判断后续会有更多的DNS判断，保持准确性
         return self.dnslog_cn_dns()
 
     def dnslog_cn_dns(self) -> bool:
@@ -66,18 +51,170 @@ class Dnslog:
                 return True
             else:
                 return False
-            #status = requests.get("http://www.dnslog.cn/getrecords.php?t="+self.dnslog_cn,headers=self.headers,  timeout=6)
-            #self.dnslog_cn_text = status.text
-            #if self.dnslog_cn_text.find('dnslog') != -1:  # 如果找到Key
-            #if self.host in self.dnslog_cn_text:  # 如果找到Key
-            #    return True
-            #else:
-            #    return False
         except Exception as e:
             print("[-]寻找%s请求记录时出错"%self.dnslog_cn, e)
 
     def dns_text(self):
         return self.dnslog_cn_text
+
+
+class Ceye(object):
+    def __init__(self, username=None, password=None, token="794851b9e8df2d3964cde6d0786a2f2d"):
+        self.headers = {'User-Agent': 'curl/7.80.0'}
+        self.token = token
+        self.username = username
+        self.password = password
+        self.check_account()
+
+    #验证token是否有效
+    def token_is_available(self):
+        if self.token:
+            # distinguish Jwt Token & API Token
+            self.headers['Authorization'] = self.token if len(self.token) < 48 else f'JWT {self.token}'
+            try:
+                resp = requests.get('http://api.ceye.io/v1/identify', headers=self.headers)
+                if resp and resp.status_code == 200 and "identify" in resp.text:
+                    return True
+                else:
+                    print(resp.text)
+            except Exception as ex:
+                print(str(ex))
+        return False
+
+    #使用用户名和密码换取token
+    def new_token(self):
+        data = '{{"username": "{}", "password": "{}"}}'.format(self.username, self.password)
+        try:
+            resp = requests.post('https://api.zoomeye.org/user/login', data=data)
+            if resp.status_code != 401 and "access_token" in resp.text:
+                content = resp.json()
+                self.token = content['access_token']
+                self.headers['Authorization'] = f'JWT {self.token}'
+                return True
+            else:
+                print(resp.text)
+        except Exception as ex:
+            print(str(ex))
+        return False
+
+    #检测账号是否登录, 否则使用用户名、密码申请token
+    def check_account(self):
+        if self.token_is_available():
+            return True
+        elif self.username and self.password:
+            if self.new_token():
+                return True
+            else:
+                print("[-]The username or password is incorrect")
+
+    def verify_request(self, flag, type="request"):
+        """
+        Check whether the ceye interface has data
+        :param flag: Input flag
+        :param type: Request type (dns|request), the default is request
+        :return: Boolean
+        """
+        ret_val = False
+        counts = 3
+        url = (
+            "http://api.ceye.io/v1/records?token={token}&type={type}&filter={flag}"
+        ).format(token=self.token, type=type, flag=flag)
+        while counts:
+            try:
+                time.sleep(1)
+                resp = requests.get(url)
+                if resp and resp.status_code == 200 and flag in resp.text:
+                    ret_val = True
+                    break
+            except Exception as ex:
+                print(ex)
+                time.sleep(1)
+            counts -= 1
+        return ret_val
+
+    def exact_request(self, flag, type="request"):
+        """
+        Obtain relevant data by accessing the ceye interface
+        :param flag: Input flag
+        :param type: Request type (dns|request), the default is request
+        :return: Return the acquired data
+        """
+        counts = 3
+        url = (
+            "http://api.ceye.io/v1/records?token={token}&type={type}&filter={flag}"
+        ).format(token=self.token, type=type, flag=flag)
+        while counts:
+            try:
+                time.sleep(1)
+                resp = requests.get(url)
+                if resp and resp.status_code == 200 and flag in resp.text:
+                    data = json.loads(resp.text)
+                    for item in data["data"]:
+                        name = item.get("name", '')
+                        pro = flag
+                        suffix = flag
+                        t = get_middle_text(name, pro, suffix, 0)
+                        if t:
+                            return t
+                    break
+            except Exception as ex:
+                print(ex)
+                time.sleep(1)
+            counts -= 1
+        return False
+
+    def build_request(self, value, type="request"):
+        """
+        Generate the sent string
+        :param value: Enter the message to be sent
+        :param type: Request type (dns|request), the default is request
+        :return: dict { url: Return the received domain name,flag: Return a random flag }
+        Example:
+          {
+            'url': 'http://htCb.jwm77k.ceye.io/htCbpingaaahtCb',
+            'flag': 'htCb'
+          }
+        """
+        ranstr = random_name(4)
+        domain = self.getsubdomain()
+        url = ""
+        if type == "request":
+            url = "http://{}.{}/{}{}{}".format(ranstr, domain, ranstr, value, ranstr)
+        elif type == "dns":
+            url = "{}{}{}.{}".format(ranstr, re.sub("\W", "", value), ranstr, domain)
+        return {"url": url, "flag": ranstr}
+
+    def getsubdomain(self):
+        """
+        Obtain subdomains through ceye token
+        :return: Return the obtained domain name
+        """
+        r = requests.get("http://api.ceye.io/v1/identify", headers=self.headers).json()
+        suffix = ".ceye.io"
+        try:
+            indetify = r["data"]["identify"]
+        except KeyError:
+            return None
+        return indetify + suffix
+    
+    #dns_callback
+    def dns_host(self) -> str:
+        self.value = random_name(6)
+        self.flag = self.build_request(self.value, type='dns')
+        domain = self.flag["url"]
+        return domain
+    
+    #result
+    def result(self) -> bool:
+        return self.ceye_cn_dns()
+    
+    def ceye_cn_dns(self) -> bool:
+        requests.delete(url="https://api.ceye.io/v1/users/self/records?type=dns_records")
+        info = self.exact_request(self.flag["flag"], type="dns")
+        if info == self.value:
+            return True
+        else:
+            return False
 
 # sql判断
 class Sql_scan:
@@ -197,9 +334,9 @@ class TextRedirector(object):
         echo_threadLock.release() #释放锁
 
     def flush(self):
-        #echo_threadLock.acquire() #获取锁
+        echo_threadLock.acquire() #获取锁
         self.widget.update()
-        #echo_threadLock.release() #释放锁
+        echo_threadLock.release() #释放锁
 
     def waitinh(self):
         echo_threadLock.acquire() #获取锁
@@ -390,3 +527,20 @@ def get_sha1(string):
     s1=sha1()
     s1.update(string.encode('utf8'))
     return s1.hexdigest()
+
+def get_middle_text(text, prefix, suffix, index=0):
+    """
+    Simple implementation of obtaining intermediate text
+    :param text:Full text to get
+    :param prefix:To get the first part of the text
+    :param suffix: To get the second half of the text
+    :param index: Where to get it from
+    :return:
+    """
+    try:
+        index_1 = text.index(prefix, index)
+        index_2 = text.index(suffix, index_1 + len(prefix))
+    except ValueError:
+        # logger.log(CUSTOM_LOGGING.ERROR, "text not found pro:{} suffix:{}".format(prefix, suffix))
+        return ''
+    return text[index_1 + len(prefix):index_2]
