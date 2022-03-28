@@ -1,6 +1,6 @@
 # -*- coding:UTF-8 -*-
 from dataclasses import replace
-from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog,PhotoImage
+from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog
 from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,Y,X,S,W,E,N
 from tkinter.filedialog import askopenfilename
 from requests_toolbelt.utils import dump
@@ -8,6 +8,7 @@ from requests_toolbelt.utils import dump
 from jinja2 import Environment, PackageLoader
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
+from PIL import ImageTk
 
 from itertools import repeat
 from openpyxl import Workbook
@@ -1696,7 +1697,7 @@ class MyEXP:
         self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止运行', command=lambda :CancelThread())
         self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda :delText(exp.TexBOT_1_2))
 
-        self.ColorImage = PhotoImage(file="./lib/red.png")
+        self.ColorImage = ImageTk.PhotoImage(file="./lib/red.png")
         self.ColorButton = Button(self.frmBOT_1_1, image=self.ColorImage)
         self.ColorButton["bg"] = "white"
         self.ColorButton["border"] = "0"
@@ -1723,7 +1724,7 @@ class MyEXP:
 
     def color_switch(self, color):
         self.ColorButton.grid_forget()
-        self.ColorImage = PhotoImage(file="./lib/"+color+".png")
+        self.ColorImage = ImageTk.PhotoImage(file="./lib/"+color+".png")
         self.ColorButton = Button(self.frmBOT_1_1, image=self.ColorImage)
         self.ColorButton["bg"] = "white"
         self.ColorButton["border"] = "0"

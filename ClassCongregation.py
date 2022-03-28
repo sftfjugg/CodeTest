@@ -159,7 +159,7 @@ class TextRedirector(object):
         self.widget.tag_config("pink", foreground="pink")
         self.widget.tag_config("cyan", foreground="cyan")
         self.widget.tag_config("magenta", foreground="magenta")
-        self.widget.tag_config("fuchsia", foreground="fuchsia")
+        #self.widget.tag_config("fuchsia", foreground="fuchsia")
 
     def write(self, str_raw):
         #now = datetime.datetime.now()
