@@ -70,7 +70,7 @@ class MyGUI:
         self.menubar.add_cascade(label = "打开文件", menu = self.menubar1)
 
         #顶级菜单增加一个普通的命令菜单项
-        self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
+        #self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
         self.menubar.add_command(label = "设置代理", command=lambda :TopProxy(gui.root))
         self.menubar.add_command(label = "免费代理池", command=lambda :Proxy_pool(gui.root))
         self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
