@@ -3,10 +3,8 @@ from dataclasses import replace
 from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog,PhotoImage
 from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,Y,X,S,W,E,N
 from tkinter.filedialog import askopenfilename
-from urllib import response
 from requests_toolbelt.utils import dump
 #from keyword import kwlist
-from exp10it import seconds2hms
 from jinja2 import Environment, PackageLoader
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +20,7 @@ import util.globalvar as GlobalVar
 import os,sys,time,socket,socks,datetime
 import importlib,glob,requests,binascii,re
 import threading,math,json,base64
-import urllib3, pymysql
+import urllib3
 import inspect
 import ctypes
 import prettytable as pt
@@ -1206,15 +1204,14 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
         commandinput.delete(0,'end')#删除控件里输入的文本
 
         self.thread_it(self.exeCMD,**{
-            'url' : Ent_B_Top_url.get().strip('/'),
-            'cookie' : Ent_B_Top_cookie.get(),
-            'cmd' : Ent_B_Bottom_Left_cmd.get(),
-            'pocname' : Ent_B_Top_vulmethod.get(),
-            'vuln' : Ent_B_Top_funtype.get(),
-            'timeout' : int(Ent_B_Top_timeout.get()),
-            'retry_time' : int(Ent_B_Top_retry_time.get()),
-            'retry_interval' : int(Ent_B_Top_retry_interval.get()),
-            'pool_num' : int(Ent_B_Top_thread_pool.get()),
+            'url':Ent_B_Top_url.get(),
+            'cookie':Ent_B_Top_cookie.get(),
+            'cmd':terminal_infos.input_list[-1],
+            'pocname':Ent_B_Top_vulmethod.get(),
+            'vuln':Ent_B_Top_funtype.get(),
+            'timeout':Ent_B_Top_timeout.get(),
+            'retry_time':Ent_B_Top_retry_time.get(),
+            'retry_interval':Ent_B_Top_retry_interval.get()
             }
         )
 
@@ -2883,6 +2880,14 @@ def save_result():
         MyGUI.ws = None
     else:
         print('[-]未找到批量检测结果, 请先执行脚本测试!')
+        
+
+def seconds2hms(seconds):
+    # 将秒数转换成时分秒
+    # 返回类型为str类型
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, s)
 #重载脚本函数
 def ReLoad():
     try:
