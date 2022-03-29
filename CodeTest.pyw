@@ -70,7 +70,7 @@ class MyGUI:
         self.menubar.add_cascade(label = "打开文件", menu = self.menubar1)
 
         #顶级菜单增加一个普通的命令菜单项
-        #self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
+        self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
         self.menubar.add_command(label = "设置代理", command=lambda :TopProxy(gui.root))
         self.menubar.add_command(label = "免费代理池", command=lambda :Proxy_pool(gui.root))
         self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
@@ -1682,7 +1682,7 @@ class MyEXP:
         self.labelBOT_1 = Label(self.frmBOT_1_1, text="CMD命令")
         self.EntABOT_1 = Entry(self.frmBOT_1_1, width='93',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
         self.EntABOT_1.insert(0, "echo VuLnEcHoPoCSuCCeSS")
-        self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行命令",command=lambda :self.thread_it(exeCMD,**{
+        self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行任务",command=lambda :self.thread_it(exeCMD,**{
             'url' : Ent_B_Top_url.get().strip('/'),
             'cookie' : Ent_B_Top_cookie.get(),
             'cmd' : Ent_B_Bottom_Left_cmd.get(),
@@ -1694,7 +1694,7 @@ class MyEXP:
             'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         ))
-        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止运行', command=lambda :CancelThread())
+        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止任务', command=lambda :CancelThread())
         self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda :delText(exp.TexBOT_1_2))
 
         self.ColorImage = ImageTk.PhotoImage(file="./lib/red.png")
@@ -3006,8 +3006,7 @@ def exeCMD(**kwargs):
             wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
         except Exception as e:
             print('出现错误: %s'%e)
-        #结束标志
-        exp.color_switch('red')
+        #结束
         end = time.time()
         print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
     #多模块测试
@@ -3038,51 +3037,32 @@ def exeCMD(**kwargs):
         tb.align['Result'] = 'l'
         
         #当前线程列表
-        index = 1
+        total_num = 1
+        success_num = 0
+        fail_num = 0
         for future in GlobalVar.get_value('thread_list'):
             #去除取消掉的future任务
             if future.cancelled() == False:
                 if future.result() is None:
-                    tb.add_row([str(index), name, 'None, Notice:function no return'])
+                    tb.add_row([str(total_num), name, 'None, Notice:function no return'])
                 else:
-                    tb.add_row([str(index), name, future.result()])
-                index += 1
+                    if 'success' in future.result():
+                        success_num += 1
+                    else:
+                        fail_num += 1
+                    tb.add_row([str(total_num), name, future.result()])
+                total_num += 1
+        tb.add_row(['%s'%str(total_num), name, 'total: %s , success: %s , fail: %s '%(str(total_num-1),str(success_num),str(fail_num))])
         print(tb)                    
-        
-        '''
-        try:
-            for data in executor.map(lambda kwargs: MyEXP.vuln.check(**kwargs), dict_list):
-                if data is None:
-                    #汇聚结果
-                    result_list.append('函数没有返回值'+'\n')
-                else:
-                    #汇聚结果
-                    result_list.append(data+'\n')
-        except Exception as e:
-            result_list.append('请求发生异常, 请删除该URL')
-        #for i in range(len(url_list)):
-        #    index_list.append(i+1)
-        #    type_list.append(name)
-        #index_list = [i+1 for i in range(len(url_list))]
-        #合并列表
-        #print_result = zip(index_list, type_list, file_list, result_list)
-        #根据结果生成表格
-        #tb = pt.PrettyTable()
-        #tb.field_names = ["Index", "Type", "URL", "Result"]
-        #tb.align['Type'] = 'l'
-        #tb.align['URL'] = 'l'
-        #tb.align['Result'] = 'l'
-        #for i in print_result:
-        #    tb.add_row(i)
-        #print(tb)
-        #MyEXP.output = tb.get_html_string()
-        '''
         with open('./EXP/output.html', "wb") as f:
             f.write(tb.get_html_string().encode('utf8'))
-        #结束标志
-        exp.color_switch('red')
+        #结束
         end = time.time()
         print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
+        if success_num == 0:
+            messagebox.showinfo(title='结果', message='未找到漏洞(-Λ-)')
+        else:
+            messagebox.showinfo(title='结果', message='共找到 %s 个漏洞(-v-)'%str(success_num))
     else:
         color('[*]请输入目标URL!','red')
         color('[*]请输入目标URL!','yellow')
@@ -3091,7 +3071,10 @@ def exeCMD(**kwargs):
         color('[*]请输入目标URL!','orange')
         color('[*]请输入目标URL!','pink')
         color('[*]请输入目标URL!','cyan')
-
+    #结束标志
+    exp.color_switch('red')
+    #关闭线程池
+    pool.shutdown()
 
 #预留功能函数
 def note():
