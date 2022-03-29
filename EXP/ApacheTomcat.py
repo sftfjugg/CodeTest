@@ -161,7 +161,6 @@ class ApacheTomcat():
             #print (self.request)
             if 'xml' in request:
                 return output.echo_success(method, info)
-                
                 print(request)
             else:
                 return output.fail()
@@ -208,18 +207,18 @@ print("""eg: http://49.4.91.247:9001/
 def check(**kwargs):
     thread_list = []
     ExpApacheTomcat = ApacheTomcat(**kwargs)
+    #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        #返回对象函数属性值，可以直接调用
-        func = getattr(ExpApacheTomcat, kwargs['pocname'])
-        #调用函数
-        return func()
+        thread_list.append(kwargs['pool'].submit(getattr(ExpApacheTomcat, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(ApacheTomcat):
             if not func.startswith("__"):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheTomcat, func)))
-        #保存全局子线程列表
-        GlobalVar.add_value('thread_list', thread_list)
+    #保存全局子线程列表
+    GlobalVar.add_value('thread_list', thread_list)
+
+
 
 
 

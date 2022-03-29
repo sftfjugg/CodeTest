@@ -112,17 +112,15 @@ class PHPStudy():
 def check(**kwargs):
     thread_list = []
     ExpPHPStudy = PHPStudy(**kwargs)
+    #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        #返回对象函数属性值，可以直接调用
-        func = getattr(ExpPHPStudy, kwargs['pocname'])
-        #调用函数
-        return func()
+        thread_list.append(kwargs['pool'].submit(getattr(ExpPHPStudy, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(PHPStudy):
             if not func.startswith("__"):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpPHPStudy, func)))
-        #保存全局子线程列表
-        GlobalVar.add_value('thread_list', thread_list)
+    #保存全局子线程列表
+    GlobalVar.add_value('thread_list', thread_list)
 
 

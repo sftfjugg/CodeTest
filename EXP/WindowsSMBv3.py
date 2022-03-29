@@ -49,15 +49,13 @@ class WindowsSMBv3():
 def check(**kwargs):
     thread_list = []
     ExpWindowsSMBv3 = WindowsSMBv3(**kwargs)
+    #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        #返回对象函数属性值，可以直接调用
-        func = getattr(ExpWindowsSMBv3, kwargs['pocname'])
-        #调用函数
-        return func()
+        thread_list.append(kwargs['pool'].submit(getattr(ExpWindowsSMBv3, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(WindowsSMBv3):
             if not func.startswith("__"):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpWindowsSMBv3, func)))
-        #保存全局子线程列表
-        GlobalVar.add_value('thread_list', thread_list)
+    #保存全局子线程列表
+    GlobalVar.add_value('thread_list', thread_list)

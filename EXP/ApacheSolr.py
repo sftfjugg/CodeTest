@@ -303,18 +303,16 @@ print("""eg: http://106.53.249.95:8983
 def check(**kwargs):
     thread_list = []
     ExpApacheSolr = ApacheSolr(**kwargs)
+    #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        #返回对象函数属性值，可以直接调用
-        func = getattr(ExpApacheSolr, kwargs['pocname'])
-        #调用函数
-        return func()
+        thread_list.append(kwargs['pool'].submit(func = getattr(ExpApacheSolr, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(ApacheSolr):
             if not func.startswith("__"):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheSolr, func)))
-        #保存全局子线程列表
-        GlobalVar.add_value('thread_list', thread_list)
+    #保存全局子线程列表
+    GlobalVar.add_value('thread_list', thread_list)
 
 
 
