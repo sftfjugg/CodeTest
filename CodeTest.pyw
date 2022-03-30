@@ -3115,7 +3115,7 @@ def callbackClose():
     if messagebox.askokcancel('提示','要执行此操作吗?') == True:
         try:
             save_data = str(mynote.Text_note.get('0.0','end'))
-            fobj_w = open('note.txt', 'w',encoding='utf-8')
+            fobj_w = open('note.txt', 'w',encoding='utf-8', errors='ignore')
             fobj_w.writelines(save_data)
             fobj_w.close()
             #sys.exit(0)
