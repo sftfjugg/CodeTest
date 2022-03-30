@@ -1,9 +1,11 @@
 import random,requests,time,binascii,subprocess,re,sys,os,webbrowser
 import xml.etree.ElementTree as ET
+import tkinter as tk
 import base64
 import threading
 import json
-from tkinter import END
+
+from tkinter import END,ttk
 from urllib.parse import urlparse
 from Crypto.Cipher import DES
 from urllib import request
@@ -345,6 +347,38 @@ class TextRedirector(object):
         self.widget.configure(state="disabled")
         self.widget.see(END)
         echo_threadLock.release() #释放锁
+        
+class FrameProgress(tk.Frame):
+    def __init__(self, parent, Prolength=200, maximum=200, **cnf):
+        tk.Frame.__init__(self, master=parent, **cnf)
+        bg = parent.cget("background")
+
+        s = ttk.Style()
+        #s.theme_use("clam")
+        #颜色随偏好修改 部分设置只在特定主题有效果,否则为默认绿色
+        s.configure(
+            "fp.Horizontal.TProgressbar", 
+            troughcolor=bg, 
+            background="#0078d7",
+            lightcolor="#0078d7", 
+            darkcolor="#0078d7", 
+            relief=tk.GROOVE
+        )
+
+        self.pBar = ttk.Progressbar(self, 
+                                    length=Prolength, 
+                                    orient="horizontal", 
+                                    mode="determinate", 
+                                    maximum=maximum,
+                                    style="fp.Horizontal.TProgressbar")
+        
+        #sticky="wens" 上面length 值会被忽略
+        self.pBar.grid(row=0, column=0, sticky="w")
+
+        #父组件的大小不由子组件决定
+        self.grid_propagate(False)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
 
 class URL():
     def __init__(self, url):

@@ -3,16 +3,16 @@ from dataclasses import replace
 from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,PanedWindow,IntVar,Listbox,filedialog
 from tkinter import HORIZONTAL,LEFT,RIGHT,YES,BOTH,INSERT,END,SINGLE,Y,X,S,W,E,N
 from tkinter.filedialog import askopenfilename
+from tkinter.tix import Tree
 from requests_toolbelt.utils import dump
 #from keyword import kwlist
 from jinja2 import Environment, PackageLoader
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
-from PIL import ImageTk
 
 from itertools import repeat
 from openpyxl import Workbook
-from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html
+from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress
 from Proxy.proxyFetcher import ProxyFetcher
 from Proxy.helper.check import DoValidator
 from Proxy.helper.proxy import Proxy as Proxy_cls
@@ -834,6 +834,7 @@ class Proxy_pool():
         self.frmA = Frame(self.Proxy, width=395, height=50, bg="whitesmoke")
         self.frmB = Frame(self.Proxy, width=395, height=370, bg="whitesmoke")
         self.frmC = Frame(self.Proxy, width=395, height=10, bg="whitesmoke")
+        
         self.frmA.grid(row=0, column=0, padx=3, pady=3)
         self.frmB.grid(row=1, column=0, padx=3, pady=3)
         self.frmC.grid(row=2, column=0, padx=3, pady=3)
@@ -861,7 +862,6 @@ class Proxy_pool():
         #self.comboxlistA["values"]=("米扑代理","66代理","pzzqz","神鸡代理","快代理","极速代理","云代理","小幻代理","免费代理库","89免费代理","西拉代理")
         self.comboxlistA["values"]=("米扑代理","快代理","云代理","小幻代理","免费代理库","89免费代理","西拉代理")
 
-
         self.LabA1 = Label(self.frmA, text='页数')#显示
         self.comboxlistA1 = ttk.Combobox(self.frmA,width=3,textvariable=variable_dict["Proxy_page"],state='readonly') #接受输入控件
         self.comboxlistA1["values"]=("1","2","3","4","5","6","7","8","9","10")
@@ -887,7 +887,7 @@ class Proxy_pool():
         self.tree.column("anonymous", width=100, anchor="center")
 
 
-        self.p1 = ttk.Progressbar(self.frmC, length=395, mode="determinate",maximum=395,orient=HORIZONTAL)
+        self.p1 = ttk.Progressbar(self.frmC, length=395, mode="determinate", maximum=395, orient=HORIZONTAL)
         self.p1.grid(row=0,column=0,sticky=W)
         #布局方式
         self.LabA.grid(row=0, column=0,padx=2, pady=2)
@@ -1632,7 +1632,8 @@ class MyEXP:
     def CreateSecond(self):
         self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=110, bg='white')
         self.frame_B1.grid(row=0, column=0, padx=2, pady=2)
-        self.frame_B1.propagate()
+        #self.frame_B1.propagate()
+        self.frame_B1.grid_propagate()
 
         self.label_4 = Label(self.frame_B1, text="命令执行(True/False)")
         self.comboxlist_4 = ttk.Combobox(self.frame_B1,width='6',textvariable=Ent_B_Top_funtype,state='readonly') #接受输入控件
@@ -1642,7 +1643,7 @@ class MyEXP:
         self.label_5 = Label(self.frame_B1, text="超时时间(Timeout)")
         self.b5 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_timeout)
 
-        self.label_6 = Label(self.frame_B1, text="重试次数(retry_time)")
+        self.label_6 = Label(self.frame_B1, text="请求次数(retry_time)")
         self.b6 = Spinbox(self.frame_B1,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_retry_time)
 
         self.label_7 = Label(self.frame_B1, text="重试间隔(retry_interval)")
@@ -1668,19 +1669,22 @@ class MyEXP:
 
     def CreateThird(self):
         self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=500, bg='white')
-        self.frmBOT_1_1 = Frame(self.frmBOT_1,width=940, height=30,bg='white')
-        self.frmBOT_1_2 = Frame(self.frmBOT_1,width=940, height=470,bg='white')
+        self.frmBOT_1_1 = Frame(self.frmBOT_1, width=940, height=20, bg='white')
+        self.frmBOT_1_2 = Frame(self.frmBOT_1, width=940, height=470, bg='white')
+        self.frmBOT_1_3 = Frame(self.frmBOT_1, width=940, height=10, bg='white')
 
         self.frmBOT_1.grid(row=0, column=0 , padx=2, pady=2)
         self.frmBOT_1_1.grid(row=0, column=0 , padx=2, pady=2)
-        self.frmBOT_1_2.grid(row=1, column=0 , padx=2, pady=2)
+        self.frmBOT_1_2.grid(row=1, column=0 , padx=0, pady=0)
+        self.frmBOT_1_3.grid(row=2, column=0 , padx=0, pady=0)
 
-        self.frmBOT_1.propagate()
-        self.frmBOT_1_1.propagate()
-        self.frmBOT_1_2.propagate()
+        self.frmBOT_1.grid_propagate()
+        self.frmBOT_1_1.grid_propagate()
+        self.frmBOT_1_2.grid_propagate()
+        self.frmBOT_1_3.grid_propagate()
 
         self.labelBOT_1 = Label(self.frmBOT_1_1, text="CMD命令")
-        self.EntABOT_1 = Entry(self.frmBOT_1_1, width='93',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
+        self.EntABOT_1 = Entry(self.frmBOT_1_1, width='97',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
         self.EntABOT_1.insert(0, "echo VuLnEcHoPoCSuCCeSS")
         self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行任务",command=lambda :self.thread_it(exeCMD,**{
             'url' : Ent_B_Top_url.get().strip('/'),
@@ -1697,17 +1701,15 @@ class MyEXP:
         self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止任务', command=lambda :CancelThread())
         self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda :delText(exp.TexBOT_1_2))
 
-        self.ColorImage = ImageTk.PhotoImage(file="./lib/red.png")
-        self.ColorButton = Button(self.frmBOT_1_1, image=self.ColorImage)
-        self.ColorButton["bg"] = "white"
-        self.ColorButton["border"] = "0"
+        self.frame_progress = FrameProgress(self.frmBOT_1_3, width=940, height=10, Prolength=940, maximum=400, bg='white')
+        self.frame_progress.grid(row=0, column=0)
 
         self.labelBOT_1.grid(row=0, column=0 , padx=2, pady=2,sticky=W)
         self.EntABOT_1.grid(row=0, column=1 , padx=2, pady=2,sticky=W)
         self.buttonBOT_1.grid(row=0, column=2 , padx=2, pady=2,sticky=W)
         self.buttonBOT_3.grid(row=0, column=3 , padx=2, pady=2,sticky=W)
         self.buttonBOT_2.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
-        self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
+        #self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
 
         self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",10), width=131, height=27, bg='black')
         self.ScrBOT_1_2 = Scrollbar(self.frmBOT_1_2)  #滚动条控件
@@ -1717,11 +1719,14 @@ class MyEXP:
         self.TexBOT_1_2.tag_add("here", "1.0","end")
         self.TexBOT_1_2.tag_config("here", background="black")
 
-        self.TexBOT_1_2.grid(row=0, column=1 , padx=2, pady=2)
+        #self.p1 = ttk.Progressbar(self.frmBOT_1_2, length=500, mode="determinate", maximum=395, orient=HORIZONTAL)
+        #self.p1.grid(row=0, columnspan=3, sticky=W)
+
+        self.TexBOT_1_2.grid(row=0, column=1 , padx=0, pady=0)
         self.ScrBOT_1_2.grid(row=0, column=2, sticky=S + W + E + N)
         self.ScrBOT_1_2.config(command=self.TexBOT_1_2.yview)
         self.TexBOT_1_2.config(yscrollcommand=self.ScrBOT_1_2.set)
-
+    '''
     def color_switch(self, color):
         self.ColorButton.grid_forget()
         self.ColorImage = ImageTk.PhotoImage(file="./lib/"+color+".png")
@@ -1729,7 +1734,7 @@ class MyEXP:
         self.ColorButton["bg"] = "white"
         self.ColorButton["border"] = "0"
         self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
-
+    '''
     def rightKey(self, event, menubar):
         menubar.delete(0,END)
         menubar.add_command(label='在浏览器显示结果',command=lambda:open_html('./EXP/output.html'))
@@ -1737,6 +1742,10 @@ class MyEXP:
         #menubar.add_command(label='打开命令控制台',command=lambda:terminal_cmds(gui.root))
         menubar.add_command(label='刷新EXP脚本',command=RefreshEXP)
         menubar.post(event.x_root,event.y_root)
+
+    def autoAdd(self):
+        flag = round(400/len(GlobalVar.get_value('thread_list')), 2)
+        self.frame_progress.pBar["value"] = self.frame_progress.pBar["value"] + flag
 
     def thread_it(self,func,**kwargs):
         self.t = threading.Thread(target=func,kwargs=kwargs)
@@ -2483,7 +2492,7 @@ class Mynote():
         self.Text_note = scrolledtext.ScrolledText(self.frm, font=("consolas",10), width=133, height=39)
         self.Text_note.pack(fill=X, expand=1)
         
-        with open('./lib/note.txt', mode='r', encoding='utf-8') as f:
+        with open('note.txt', mode='r', encoding='utf-8') as f:
             array = f.readlines()
             for i in array: #遍历array中的每个元素
                 self.Text_note.insert(INSERT, i)
@@ -2959,21 +2968,26 @@ def delText(text):
     text.delete('1.0','end')
     text.configure(state="disabled")
 
-#停止线程
-def CancelThread():
-    '''
+def autoAdd():
+    flag = round(400/len(GlobalVar.get_value('thread_list')), 2)
+    thread_list = GlobalVar.get_value('thread_list')
+    #标志位
+    index_list = [index for index in range(len(thread_list))]
     while True:
-        thread_list = GlobalVar.get_value('thread_list')
-        for task in thread_list:
-            task.cancel()
-        thread_list = GlobalVar.get_value('thread_list')
-        for task in thread_list:
-            if task.done() == False:
-                break
-        else:
+        thread_num = len(index_list)
+        #使用倒叙遍历列表
+        for index in range(len(index_list)-1, -1, -1):
+            #完成
+            if thread_list[index].done() == True:
+                #删除标志位
+                del index_list[index]
+        #每次循环遍历所增长的进度
+        exp.frame_progress.pBar["value"] = exp.frame_progress.pBar["value"] + (thread_num - len(index_list)) * flag
+        #全部执行完成
+        if len(index_list) == 0:
             break
-        continue
-    '''     
+#停止线程
+def CancelThread():   
     thread_list = GlobalVar.get_value('thread_list')
     try:
         for task in thread_list:
@@ -2990,12 +3004,14 @@ def exeCMD(**kwargs):
         messagebox.showinfo(title='提示', message='还未选择模块')
         return
     #开始标志
-    exp.color_switch('green')
+    #exp.color_switch('green')
     start = time.time()
     #初始化全局子线程列表
     pool = ThreadPoolExecutor(kwargs['pool_num'])
     kwargs['pool'] = pool
     GlobalVar.set_value('thread_list', [])
+    #进度条初始化
+    exp.frame_progress.pBar["value"] = 0
     print("[*]开始执行测试: %s"%kwargs['url'])
     #单模块测试
     if kwargs['url']:
@@ -3003,6 +3019,8 @@ def exeCMD(**kwargs):
         try:
             print("[*]正在装填线程列表, 即将开始测试!")
             MyEXP.vuln.check(**kwargs)
+            #进度条开始增长
+            exp.thread_it(autoAdd)
             wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
         except Exception as e:
             print('出现错误: %s'%e)
@@ -3024,6 +3042,8 @@ def exeCMD(**kwargs):
         print("[*]正在装填线程列表, 即将开始测试!")
         for kwargs in dict_list:
             MyEXP.vuln.check(**kwargs)
+        #进度条开始增长
+        exp.thread_it(autoAdd)
         #阻塞主线程，直到满足条件
         #FIRST_COMPLETED（完成1个）
         #FIRST_EXCEPTION（报错1个）
@@ -3036,24 +3056,34 @@ def exeCMD(**kwargs):
         tb.align['Type'] = 'l'
         tb.align['Result'] = 'l'
         
-        #当前线程列表
+        #总共加载的poc数
         total_num = 1
+        #成功次数
         success_num = 0
+        #失败次数
         fail_num = 0
+        #没有结果次数
+        noresult_num = 0
+        #成功列表
+        result_list = []
         for future in GlobalVar.get_value('thread_list'):
             #去除取消掉的future任务
             if future.cancelled() == False:
                 if future.result() is None:
+                    noresult_num += 1
                     tb.add_row([str(total_num), name, 'None, Notice:function no return'])
                 else:
                     if 'success' in future.result():
                         success_num += 1
+                        result_list.append('[+] '+future.result())
                     else:
                         fail_num += 1
                     tb.add_row([str(total_num), name, future.result()])
                 total_num += 1
-        tb.add_row(['%s'%str(total_num), name, 'total: %s , success: %s , fail: %s '%(str(total_num-1),str(success_num),str(fail_num))])
-        print(tb)                    
+        tb.add_row(['count', name, 'total: %s , success: %s , fail: %s , none: %s'%(str(total_num-1),str(success_num),str(fail_num),str(noresult_num))])
+        print(tb)
+        for sucess_str in result_list:
+            color(sucess_str, 'green')
         with open('./EXP/output.html', "wb") as f:
             f.write(tb.get_html_string().encode('utf8'))
         #结束
@@ -3072,7 +3102,7 @@ def exeCMD(**kwargs):
         color('[*]请输入目标URL!','pink')
         color('[*]请输入目标URL!','cyan')
     #结束标志
-    exp.color_switch('red')
+    #exp.color_switch('red')
     #关闭线程池
     pool.shutdown()
 
@@ -3085,7 +3115,7 @@ def callbackClose():
     if messagebox.askokcancel('提示','要执行此操作吗?') == True:
         try:
             save_data = str(mynote.Text_note.get('0.0','end'))
-            fobj_w = open('./lib/note.txt', 'w',encoding='utf-8')
+            fobj_w = open('note.txt', 'w',encoding='utf-8')
             fobj_w.writelines(save_data)
             fobj_w.close()
             #sys.exit(0)
@@ -3098,7 +3128,8 @@ def callbackClose():
 #全局函数定义结束
 
 #全局环境变量
-github_now = None #保存GitHub登录后的状态
+github_now = None
+#保存GitHub登录后的状态
 
 if __name__ == "__main__":
     gui = MyGUI()
