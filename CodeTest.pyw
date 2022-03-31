@@ -1743,10 +1743,6 @@ class MyEXP:
         menubar.add_command(label='刷新EXP脚本',command=RefreshEXP)
         menubar.post(event.x_root,event.y_root)
 
-    def autoAdd(self):
-        flag = round(400/len(GlobalVar.get_value('thread_list')), 2)
-        self.frame_progress.pBar["value"] = self.frame_progress.pBar["value"] + flag
-
     def thread_it(self,func,**kwargs):
         self.t = threading.Thread(target=func,kwargs=kwargs)
         self.t.setDaemon(True)   # 守护--就算主界面关闭，线程也会留守后台运行（不对!）
@@ -2969,8 +2965,8 @@ def delText(text):
     text.configure(state="disabled")
 
 def autoAdd():
-    flag = round(400/len(GlobalVar.get_value('thread_list')), 2)
     thread_list = GlobalVar.get_value('thread_list')
+    flag = round(400/len(thread_list), 2)
     #标志位
     index_list = [index for index in range(len(thread_list))]
     while True:
@@ -2978,13 +2974,15 @@ def autoAdd():
         #使用倒叙遍历列表
         for index in range(len(index_list)-1, -1, -1):
             #完成
-            if thread_list[index].done() == True:
+            #if thread_list[index].done() == True:
+            if thread_list[index_list[index]]._state == 'FINISHED':
                 #删除标志位
                 del index_list[index]
         #每次循环遍历所增长的进度
         exp.frame_progress.pBar["value"] = exp.frame_progress.pBar["value"] + (thread_num - len(index_list)) * flag
         #全部执行完成
         if len(index_list) == 0:
+            exp.frame_progress.pBar["value"] = 400
             break
 #停止线程
 def CancelThread():   
