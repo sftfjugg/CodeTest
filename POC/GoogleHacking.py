@@ -607,10 +607,3 @@ if __name__ == '__main__':
     p.HackingUrl_fromGoogle(google, page_count, timestr)
     #p.HackingUrl_fromGoogle(google, page_count, timestr)
     print('[*]爬取完成, 请查看结果文件 %s_%s.xlsx'%('GoogleHacking',timestr))
-
-
-
-
-
-
-
