@@ -305,7 +305,7 @@ def check(**kwargs):
     ExpApacheSolr = ApacheSolr(**kwargs)
     #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        thread_list.append(kwargs['pool'].submit(func = getattr(ExpApacheSolr, kwargs['pocname'])))
+        thread_list.append(kwargs['pool'].submit(getattr(ExpApacheSolr, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(ApacheSolr):
@@ -313,6 +313,8 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheSolr, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
+
+
 
 
 
