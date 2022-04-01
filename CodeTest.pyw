@@ -2972,6 +2972,8 @@ def delText(text):
 def autoAdd():
     thread_list = GlobalVar.get_value('thread_list')
     flag = round(400/len(thread_list), 2)
+    if len(thread_list) == 1:
+        return
     #标志位
     index_list = [index for index in range(len(thread_list))]
     while True:

