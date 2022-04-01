@@ -70,10 +70,10 @@ class MyGUI:
         self.menubar.add_cascade(label = "打开文件", menu = self.menubar1)
 
         #顶级菜单增加一个普通的命令菜单项
-        #self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
+        self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
         self.menubar.add_command(label = "设置代理", command=lambda :TopProxy(gui.root))
         self.menubar.add_command(label = "免费代理池", command=lambda :Proxy_pool(gui.root))
-        #self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
+        self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
         #显示菜单
         self.root.config(menu = self.menubar)
         
@@ -1205,14 +1205,15 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
         commandinput.delete(0,'end')#删除控件里输入的文本
 
         self.thread_it(self.exeCMD,**{
-            'url':Ent_B_Top_url.get(),
-            'cookie':Ent_B_Top_cookie.get(),
+            'url' : Ent_B_Top_url.get().strip('/'),
+            'cookie' : Ent_B_Top_cookie.get(),
             'cmd':terminal_infos.input_list[-1],
-            'pocname':Ent_B_Top_vulmethod.get(),
-            'vuln':Ent_B_Top_funtype.get(),
-            'timeout':Ent_B_Top_timeout.get(),
-            'retry_time':Ent_B_Top_retry_time.get(),
-            'retry_interval':Ent_B_Top_retry_interval.get()
+            'pocname' : Ent_B_Top_vulmethod.get(),
+            'vuln' : Ent_B_Top_funtype.get(),
+            'timeout' : int(Ent_B_Top_timeout.get()),
+            'retry_time' : int(Ent_B_Top_retry_time.get()),
+            'retry_interval' : int(Ent_B_Top_retry_interval.get()),
+            'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         )
 
@@ -1222,15 +1223,19 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
         self.t.start()           # 启动
 
     #漏洞利用界面执行命令函数
-    def exeCMD(self,**kwargs):
+    def exeCMD(self, **kwargs):
+        from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
         print(self.command_input.get())
         if kwargs['url'] == '' or kwargs['cmd'] == '':
-            #color('[*]请输入目标URL和命令','pink')
             return
         #start = time.time()
+        pool = ThreadPoolExecutor(kwargs['pool_num'])
+        kwargs['pool'] = pool
+        GlobalVar.set_value('thread_list', [])
         try:
             print(kwargs['cmd'])
             MyEXP.vuln.check(**kwargs)
+            wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
         except Exception as e:
             print('出现错误: %s'%e)
         #end = time.time()
@@ -1652,8 +1657,8 @@ class MyEXP:
         self.label_8 = Label(self.frame_B1, text="线程数量(pool_num)")
         self.b8 = Spinbox(self.frame_B1,from_=1,to=30,wrap=True,width=3,font=("consolas",10),textvariable=Ent_B_Top_thread_pool)
 
-        self.label_4.grid(row=0,column=0,padx=2, pady=2, sticky=W)
-        self.comboxlist_4.grid(row=0,column=1,padx=2, pady=2, sticky=W)
+        self.label_4.grid(row=2,column=0,padx=2, pady=2, sticky=W)
+        self.comboxlist_4.grid(row=2,column=1,padx=2, pady=2, sticky=W)
 
         self.label_5.grid(row=0,column=2,padx=2, pady=2, sticky=W)
         self.b5.grid(row=0,column=3,padx=2, pady=2, sticky=W)
@@ -1664,8 +1669,8 @@ class MyEXP:
         self.label_7.grid(row=1,column=2,padx=2, pady=2, sticky=W)
         self.b7.grid(row=1,column=3,padx=2, pady=2, sticky=W)
     
-        self.label_8.grid(row=2,column=0,padx=2, pady=2, sticky=W)
-        self.b8.grid(row=2,column=1,padx=2, pady=2, sticky=W)
+        self.label_8.grid(row=0,column=0,padx=2, pady=2, sticky=W)
+        self.b8.grid(row=0,column=1,padx=2, pady=2, sticky=W)
 
     def CreateThird(self):
         self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=950, height=500, bg='white')
@@ -2987,6 +2992,9 @@ def autoAdd():
 #停止线程
 def CancelThread():   
     thread_list = GlobalVar.get_value('thread_list')
+    if len(thread_list) == 0:
+        messagebox.showinfo(title='提示', message='没有正在运行的任务~')
+        return
     try:
         for task in thread_list:
             task.cancel()
