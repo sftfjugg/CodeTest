@@ -4558,7 +4558,7 @@ def check(**kwargs):
         print('执行脚本出错 %s'%type(e))
         
 if __name__ == "__main__":
-    check(**{'url':'http://know.jxedu.gov.cn/Stulogin.jsp'})
+    check(**{'url':'https://example.com/login.jsp'})
 
 
 

@@ -596,7 +596,7 @@ if __name__ == '__main__':
     #page_count = int(input("[*]请输入需要爬取的页数->"))
     timestr = time.strftime("%Y%m%d_%H%M%S")#获取当前时间
     
-    google = 'site:jxedu.gov.cn'
+    google = 'site:example.com'
     #p.HackingUrl_fromBaidu(google, page_count, timestr)
     #p.HackingUrl_from360(google, page_count, timestr)
     #p.HackingUrl_fromBing(google, page_count, timestr)
