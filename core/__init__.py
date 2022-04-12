@@ -1,4 +1,3 @@
-import imp
 from core.exec_commands import Exec_Commands
 from core.loadfile import Loadfile
 from core.terminal_infos import Terminal_Infos
