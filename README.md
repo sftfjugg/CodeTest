@@ -35,7 +35,7 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 (三)使用工具
 1) 双击 CodeTest.bat
-2) pythonw3 -B CodeTest.pyw
+2) python3 -B CodeTest.py
 
 (四)备注: 如果GitHub图片显示不出来，修改hosts
 C:\Windows\System32\drivers\etc\hosts

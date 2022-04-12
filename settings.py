@@ -1,10 +1,13 @@
+from concurrent.futures import thread
 from tkinter import StringVar,IntVar
 import os
 import sys
+from tkinter.messagebox import NO
 
 ###获取项目路径###
-curPath = os.path.dirname(os.path.realpath(sys.executable))#当前执行路径
-scriptPath = os.getcwd()
+curPath = os.path.dirname(os.path.realpath(sys.executable))
+#当前python.exe执行路径
+rootPath = os.getcwd()
 
 #代理网站
 Proxy_page = IntVar(value=1)#爬取代理的页数
@@ -32,11 +35,18 @@ Proxy_port = StringVar(value='8080')#代理界面_代理端口
 
 #漏洞扫描界面_A
 Ent_A_Top_thread = StringVar(value='3')#漏洞扫描界面_顶部_线程_3
-Ent_A_Top_Text = '''[*]请输入正确的网址,比如 [http://www.baidu.com]
-[*]请注意有些需要使用域名, 有些需要使用IP!
-[*]漏洞扫描模块是检测漏洞的, 命令执行需要在漏洞利用模块使用!
-[-]有处BUG, 在读取py文件时, 如果引号前面有字母存在会出错, 如 f'', r''
-'''
+Ent_A_Top_Text = '''
+   ____          _     _____         _   
+  / ___|___   __| | __|_   _|__  ___| |_ 
+ | |   / _ \ / _` |/ _ \| |/ _ \/ __| __|
+ | |__| (_) | (_| |  __/| |  __/\__ \ |_ 
+  \____\___/ \__,_|\___||_|\___||___/\__| v0.2
+[*]1.信息收集 -> 收集信息, 打点
+[*]2.漏洞扫描 -> 扫描漏洞, 结果会保存在仓库中, 等待进一步利用
+[*]3.漏洞测试 -> 验证漏洞, 生成exp脚本
+[*]4.漏洞仓库 -> 保存扫描结果, 支持批量利用
+[*]5.漏洞笔记 -> 存放常用语句
+--------------------------------------------------Main--------------------------------------------------'''
 
 #漏洞利用界面_B
 Ent_B_Top_url = StringVar(value='')#漏洞利用界面_顶部_目标地址
@@ -55,7 +65,7 @@ Ent_B_Bottom_terminal_cmd = StringVar()#漏洞利用界面_终端_CMD命令输�
 Ent_C_Top_url = StringVar(value='http://httpbin.org')#漏洞测试界面_顶部_目标地址
 Ent_C_Top_path = StringVar(value='/ip')#漏洞测试界面_顶部_路径
 Ent_C_Top_reqmethod = StringVar(value='GET')#漏洞测试界面_顶部_请求方法类型_GET
-Ent_C_Top_vulname = StringVar(value='用作类名, 不能包含空格')#漏洞测试界面_顶部_脚本名称
+Ent_C_Top_vulname = StringVar(value='')#漏洞测试界面_顶部_脚本名称
 Ent_C_Top_cmsname = StringVar(value='')#漏洞测试界面_顶部_CMS名称
 Ent_C_Top_cvename = StringVar(value='cve_')#漏洞测试界面_顶部_CVE编号
 Ent_C_Top_version = StringVar(value='app=""')#漏洞测试界面_顶部_版本信息
@@ -76,7 +86,7 @@ TCP_Debug_IP = StringVar(value='127.0.0.1')#TCP调试界面_IP地址
 TCP_Debug_PORT = IntVar(value=80)#TCP调试界面_端口
 TCP_Debug_PKT_BUFF_SIZE = IntVar(value=2048)#TCP调试界面_接收缓冲区大小
 
-#其他变量
+#代理变量
 variable_dict = {
     "Proxy_CheckVar1" : Proxy_CheckVar1, 
     "Proxy_CheckVar2" : Proxy_CheckVar2, 
@@ -86,3 +96,23 @@ variable_dict = {
     "Proxy_page" : Proxy_page,
     "Proxy_webtitle" : Proxy_webtitle,
 }
+#全局空间
+#Globals = globals()
+
+#界面对象
+exp = None
+mycheck = None
+mynote = None
+myvuldatabase = None
+myurls= None
+myproxy= None
+createexp = None
+
+#保存GitHub登录后的状态
+github_now = None
+#EXP下的脚本列表
+exp_scripts = ['ALL']
+#EXP下的脚本下的CVE编号
+exp_scripts_cve = ['ALL']
+#EXP下加载的脚本对象
+myexp_vuln = None

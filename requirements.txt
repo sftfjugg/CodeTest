@@ -10,3 +10,4 @@ requests_toolbelt==0.9.1
 openpyxl==3.0.9
 ajpy==0.0.5
 pillow==9.0.1
+mmh3==3.0.0

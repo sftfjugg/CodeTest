@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from requests.models import Response
+from util.Bytes import Bytes
+from util.urlType import UrlType
 from lxml import etree
 from ClassCongregation import color
 from settings import Ent_B_Top_timeout,Ent_B_Top_retry_time,Ent_B_Top_retry_interval
@@ -13,7 +15,6 @@ from Proxy.handler.logHandler import LogHandler
 
 requests.packages.urllib3.disable_warnings()
 
-
 class ExpRequest(object):
     
     def __init__(self, pocname, output=None, *args, **kwargs):
@@ -23,7 +24,9 @@ class ExpRequest(object):
         self.timeout = int(Ent_B_Top_timeout.get())
         self.retry_time = int(Ent_B_Top_retry_time.get())
         self.retry_interval = int(Ent_B_Top_retry_interval.get())
-
+        #self.method = ''
+        #self.latency = ''
+        
     @property
     def user_agent(self):
         """
@@ -67,6 +70,7 @@ class ExpRequest(object):
         retry_interval = self.retry_interval
         timeout = self.timeout
         header = self.header
+
         if headers and isinstance(headers, dict):
             header.update(headers)
         while True:
@@ -105,6 +109,7 @@ class ExpRequest(object):
         retry_interval = self.retry_interval
         timeout = self.timeout
         header = self.header
+
         if headers and isinstance(headers, dict):
             header.update(headers)
         while True:
@@ -142,6 +147,7 @@ class ExpRequest(object):
         retry_interval = self.retry_interval
         timeout = self.timeout
         header = self.header
+
         if headers and isinstance(headers, dict):
             header.update(headers)
         while True:
@@ -179,6 +185,7 @@ class ExpRequest(object):
         retry_interval = self.retry_interval
         timeout = self.timeout
         header = self.header
+
         if headers and isinstance(headers, dict):
             header.update(headers)
         while True:
@@ -210,12 +217,23 @@ class ExpRequest(object):
             return self.response.apparent_encoding
 
     @property
+    def status(self):
+        return self.response.status_code
+
+    @property
     def status_code(self):
         return self.response.status_code
 
     @property
     def headers(self):
         return self.response.headers
+    
+    @property
+    def content_type(self):
+        try:
+            return self.response.headers['Content-Type']
+        except:
+            return ''
     
     @property
     def title(self):
@@ -237,50 +255,84 @@ class ExpRequest(object):
             self.log.error(str(e))
             return {}
 
+    @property
+    def body(self):
+        return Bytes(self.response.text.encode(encoding='UTF-8', errors='ignore'))
+    
+    @property
+    def raw(self):
+        return None
+    
+    @property
+    def url(self):
+        return UrlType(self.url)
+    
+    @property
+    def method(self):
+        return self.method
+    
+    @property
+    def latency(self):
+        return self.latency
+    
 #结果输出
 class Output(object):
-    def __init__(self, url='', pocname=''):
+    def __init__(self, url='', appname='', pocname='', last_status='fail'):
         self.error_msg = tuple()
         self.result = {}
         self.params = {}
         self.status = {}
         self.url = url
+        #组件类型
+        self.appname = appname
+        #漏洞名称
         self.pocname = pocname
+        #检测状态 -> 默认为fail
+        self.last_status = last_status
+        #检测时间
+        self.last_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     def result_error(self, error=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ error, 'cyan')
-        return self.url+'   ' + self.pocname + ' -> fail'
+        self.last_status = 'fail'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def timeout_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because timeout !!!", 'cyan')
-        return self.url+'   ' + self.pocname + ' -> fail'
+        self.last_status = 'fail'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def connection_output(self):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" check failed because unable to connect !!!", 'cyan')
-        return self.url+'   ' + self.pocname + ' -> fail'
+        self.last_status = 'fail'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def error_output(self, error=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + " "+ self.pocname +" "+ error +" !!!", 'cyan')
-        return self.url+'   ' + self.pocname + ' -> fail'
+        self.last_status = 'fail'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def no_echo_success(self, method='', info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info, 'green')
-        return self.url+'   ' + self.pocname + ' -> success'
+        self.last_status = 'success'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def echo_success(self, method='', info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[+] The target is "+ self.pocname +" ["+ method +"] "+ info +" echo_success", 'green')
-        return self.url+'   ' + self.pocname + ' -> success'
+        self.last_status = 'success'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def fail(self, info=''):
         now = datetime.datetime.now()
         color ("["+str(now)[11:19]+"] " + "[-] The target no "+ self.pocname + " " + info, 'magenta')
-        return self.url+'   ' + self.pocname + ' -> fail'
+        self.last_status = 'fail'
+        return self.url+'|'+self.appname+'|'+self.pocname+'|'+self.last_status+'|'+self.last_time
 
     def to_dict(self):
         return self.__dict__

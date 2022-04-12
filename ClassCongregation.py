@@ -280,8 +280,10 @@ class Sql_scan:
         return 0
 
 #重定向输出类
+#from settings import echo_threadLock
 echo_threadLock = threading.Lock()
 class TextRedirector(object):
+    #global echo_threadLock
     def __init__(self, widget, tag="stdout", index="1"):
         #同步锁
         self.widget = widget
@@ -301,11 +303,6 @@ class TextRedirector(object):
         #self.widget.tag_config("fuchsia", foreground="fuchsia")
 
     def write(self, str_raw):
-        #now = datetime.datetime.now()
-        #if str_raw != '\n':
-        #    str_raw = "["+str(now)[11:19]+"]" + str_raw
-        #if str_raw != '\n':
-            #logging.info(str_raw)
         echo_threadLock.acquire() #获取锁
         if self.index == "2":#命令执行背景是黑色，字体是绿色。
             self.tag = 'white'
@@ -319,6 +316,8 @@ class TextRedirector(object):
             self.widget.insert(END, str_raw, (self.tag,))
             self.widget.configure(state="disabled")
             self.widget.see(END)
+        #flush
+        self.widget.update()
         echo_threadLock.release() #释放锁
 
     def Colored(self, str_raw, color='black', end='\n'):
@@ -333,12 +332,14 @@ class TextRedirector(object):
         self.widget.insert(END, str_raw, (self.tag,))
         self.widget.configure(state="disabled")
         self.widget.see(END)
-        echo_threadLock.release() #释放锁
-
-    def flush(self):
-        echo_threadLock.acquire() #获取锁
+        #flush
         self.widget.update()
         echo_threadLock.release() #释放锁
+
+    #def flush(self):
+    #    echo_threadLock.acquire() #获取锁
+    #    self.widget.update()
+    #    echo_threadLock.release() #释放锁
 
     def waitinh(self):
         echo_threadLock.acquire() #获取锁
@@ -347,7 +348,7 @@ class TextRedirector(object):
         self.widget.configure(state="disabled")
         self.widget.see(END)
         echo_threadLock.release() #释放锁
-        
+
 class FrameProgress(tk.Frame):
     def __init__(self, parent, Prolength=200, maximum=200, **cnf):
         tk.Frame.__init__(self, master=parent, **cnf)
@@ -412,8 +413,23 @@ class URL():
         :return:
         """
         return self.scheme+"://"+self.netloc
+    
+from tkinter import Tk    
+#复制字符到Windows剪切板
+def addToClipboard(text):
+    r = Tk()
+    r.withdraw()
+    r.clipboard_clear()
+    r.clipboard_append(text)
+    r.update()
+    r.destroy()
 
-
+def seconds2hms(seconds):
+    # 将秒数转换成时分秒
+    # 返回类型为str类型
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, s)
 
 #颜色输出函数
 def color(str, color='black', end='\n'):
@@ -552,9 +568,6 @@ def des_dec(text,ENCRYPT_KEY):
     decrypt_text = request.unquote(decrypt_text)
     return decrypt_text
 
-def get_md5(string):
-    from hashlib import md5
-    return md5(string.encode('utf8',errors="ignore")).hexdigest()
 
 def get_sha1(string):
     from hashlib import sha1
@@ -578,3 +591,22 @@ def get_middle_text(text, prefix, suffix, index=0):
         # logger.log(CUSTOM_LOGGING.ERROR, "text not found pro:{} suffix:{}".format(prefix, suffix))
         return ''
     return text[index_1 + len(prefix):index_2]
+
+#打开脚本目录
+def LoadCMD(folder_name):
+    from settings import rootPath
+    start_directory = rootPath + folder_name
+    os.startfile(start_directory)
+    
+#删除text组件的内容
+def delText(text):
+    text.configure(state="normal")
+    text.delete('1.0','end')
+    text.configure(state="disabled")
+    
+def thread_it(func, **kwargs):
+    t = threading.Thread(target=func,kwargs=kwargs)
+    #守护--就算主界面关闭，线程也会留守后台运行（不对!）
+    t.setDaemon(True)
+    #启动
+    t.start()

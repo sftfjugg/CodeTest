@@ -2,7 +2,7 @@ from util.ExpRequest import ExpRequest,Output
 import util.globalvar as GlobalVar
 import prettytable as pt
 """
-from ClassCongregation import Dnslog
+from ClassCongregation import Dnslog,random_name
 DL = Dnslog()
 DL.dns_host()
 DL.result()
@@ -30,18 +30,34 @@ class {{service.entry_nodes.vulname}}():
         data = '{{service.header_nodes.content.data}}'
         headers = {{service.header_nodes.headinfo.header}}
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
         try:
             if self.vuln == 'False':
-                r = exprequest.{{service.header_nodes.headinfo.method}}(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.{{service.header_nodes.headinfo.method}}(
+                    url=self.url+path, 
+                    data=data, 
+                    headers=headers, 
+                    retry_time=self.retry_time, 
+                    retry_interval=self.retry_interval,
+                    timeout=self.timeout, 
+                    verify=False
+                    )
                 {{service.entry_nodes.condition}}
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.{{service.header_nodes.headinfo.method}}(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.{{service.header_nodes.headinfo.method}}(
+                    url=self.url+path,
+                    data=data, 
+                    headers=headers, 
+                    retry_time=self.retry_time, 
+                    retry_interval=self.retry_interval, 
+                    timeout=self.timeout, 
+                    verify=False
+                    ).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
