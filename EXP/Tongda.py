@@ -28,7 +28,7 @@ class Tongda():
         path3='/general/index.php'
         fofa = 'app="通达OA网络智能办公系统"'
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
         try:
@@ -61,7 +61,7 @@ class Tongda():
         desc = '通达OA任意文件包含漏洞'
         fofa = 'app="通达OA网络智能办公系统"'
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -100,7 +100,7 @@ class Tongda():
         desc = '通达OA任意文件上传&远程命令执行漏洞'
         fofa = 'app="通达OA网络智能办公系统"'
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 

@@ -336,10 +336,10 @@ class TextRedirector(object):
         self.widget.update()
         echo_threadLock.release() #释放锁
 
-    #def flush(self):
-    #    echo_threadLock.acquire() #获取锁
-    #    self.widget.update()
-    #    echo_threadLock.release() #释放锁
+    def flush(self):
+       echo_threadLock.acquire() #获取锁
+       self.widget.update()
+       echo_threadLock.release() #释放锁
 
     def waitinh(self):
         echo_threadLock.acquire() #获取锁
@@ -603,10 +603,3 @@ def delText(text):
     text.configure(state="normal")
     text.delete('1.0','end')
     text.configure(state="disabled")
-    
-def thread_it(func, **kwargs):
-    t = threading.Thread(target=func,kwargs=kwargs)
-    #守护--就算主界面关闭，线程也会留守后台运行（不对!）
-    t.setDaemon(True)
-    #启动
-    t.start()

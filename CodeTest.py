@@ -1,7 +1,7 @@
 # -*- coding:UTF-8 -*-
 from tkinter import LEFT, RIGHT, ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,IntVar,filedialog
 from tkinter import HORIZONTAL,BOTH,INSERT,END,S,W,E,N
-from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress,seconds2hms,LoadCMD,delText,thread_it
+from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress,seconds2hms,LoadCMD,delText
 from concurrent.futures import ThreadPoolExecutor
 from requests_toolbelt.utils import dump
 from openpyxl import Workbook
@@ -241,7 +241,13 @@ class MyGUI:
     #创造第四象限
     def CreateFourth(self):
         self.ButtonE1 = Button(self.frmE, text='加载POC', width = 8, command=self.LoadPoc)
-        self.ButtonE2 = Button(self.frmE, text='编辑文件', width = 8, command=lambda:CodeFile(gui.root,MyGUI.Checkbutton_text,'1',MyGUI.vuln))
+        self.ButtonE2 = Button(self.frmE, text='编辑文件', width = 8, command=lambda:thread_it(CodeFile, **{
+            'root':gui.root,
+            'file_name':MyGUI.Checkbutton_text,
+            'Logo':'1',
+            'vuln_select':MyGUI.vuln,
+            'text':'',
+            }))
         self.ButtonE3 = Button(self.frmE, text='打开脚本目录', width = 10, command=lambda:LoadCMD('/POC'))
 
         self.ButtonE1.grid(row=0, column=0,padx=2, pady=2)
@@ -826,9 +832,12 @@ class Data_debug():
 
 #漏洞利用界面类
 class MyEXP:
+    thread = None
+    pool = None
     def __init__(self, gui):
         self.frmEXP = gui.frmEXP
         self.root = gui.root
+        # self.thread = thread
         #创建一个菜单
         self.menubar = Menu(self.root, tearoff=False)
 
@@ -882,7 +891,13 @@ class MyEXP:
         self.comboxlist_3.bind("<<ComboboxSelected>>", bind_combobox)
 
         self.comboxlist_3_1 = ttk.Combobox(self.frame_1,width='32',textvariable=Ent_B_Top_vulmethod,state='readonly') #接受输入控件2
-        self.button_3 = Button(self.frame_1, text="编辑文件", width=6, command=lambda:CodeFile(gui.root, Ent_B_Top_vulname.get(), '2', myexp_vuln, Ent_B_Top_vulmethod.get()))
+        self.button_3 = Button(self.frame_1, text="编辑文件", width=6, command=lambda:thread_it(CodeFile,**{
+            'root':gui.root,
+            'file_name':Ent_B_Top_vulname.get(),
+            'Logo':'2',
+            'vuln_select':myexp_vuln,
+            'text':Ent_B_Top_vulmethod.get(),
+            }))
 
         self.label_1.grid(row=0,column=0,padx=1, pady=1)
         self.EntA_1.grid(row=0,columnspan=4,padx=1, pady=1)
@@ -965,7 +980,7 @@ class MyEXP:
             'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         ))
-        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='停止任务', command=lambda : thread_it(CancelThread()))
+        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='取消任务', command=lambda : thread_it(CancelThread()))
         self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda : delText(exp.TexBOT_1_2))
 
         self.frame_progress = FrameProgress(self.frmBOT_1_3, width=1130, height=10, Prolength=1130, maximum=1000, bg='white')
@@ -1564,6 +1579,22 @@ def bind_combobox_3(*args):
     else:
         Ent_B_Bottom_Left_cmd.set('whoami')
 
+
+def thread_it(func, **kwargs):
+    exp.thread = threading.Thread(target=func, kwargs=kwargs)
+    exp.thread.setDaemon(True)
+    #启动
+    exp.thread.start()
+
+def stop_thread(thread):
+    if thread is not None:
+        try:
+            _async_raise(thread.ident, SystemExit)
+            #self.wait_running_job.stop()
+            print("[*]已停止运行")
+        except Exception as e:
+            messagebox.showinfo('提示',e)
+
 #当前运行状态
 def wait_running():
     MyGUI.wait_index = 0
@@ -1575,7 +1606,6 @@ def wait_running():
         time.sleep(0.25)
         gui.TexA2.delete('1.0','end')
         MyGUI.wait_index = MyGUI.wait_index + 1
-
 
 #终止子线程
 def _async_raise(tid, exctype):
@@ -1662,6 +1692,7 @@ def Area_POC(index):
 
 #进度条自动增长函数
 def autoAdd():
+    from util.fun import randomInt
     thread_list = GlobalVar.get_value('thread_list')
     flag = round(400/len(thread_list), 2)
     #if len(thread_list) == 1:
@@ -1683,15 +1714,20 @@ def autoAdd():
         if len(index_list) == 0:
             exp.frame_progress.pBar["value"] = 1000
             break
+        time.sleep(randomInt(1,3))
+
 #停止线程
 def CancelThread():   
     thread_list = GlobalVar.get_value('thread_list')
     if len(thread_list) == 0:
         messagebox.showinfo(title='提示', message='没有正在运行的任务~')
         return
+    index = 0
     try:
         for task in thread_list:
-            task.cancel()
+            if task.cancel() == True:
+                index += 1
+        messagebox.showinfo(title='提示', message="总共有%s个任务,成功取消%s个任务"%(len(thread_list),str(index)))
     except TypeError as e:
         messagebox.showinfo(title='提示', message='TypeError: '+e)
     except Exception as e:
@@ -1699,7 +1735,7 @@ def CancelThread():
 
 #漏洞利用界面执行命令函数
 def exeCMD(**kwargs):
-    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
+    from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED,CancelledError
     if myexp_vuln == None:
         messagebox.showinfo(title='提示', message='还未选择模块')
         return        
@@ -1714,8 +1750,8 @@ def exeCMD(**kwargs):
         temp = 0
     start = time.time()
     #初始化全局子线程列表
-    pool = ThreadPoolExecutor(kwargs['pool_num'])
-    kwargs['pool'] = pool
+    exp.pool = ThreadPoolExecutor(kwargs['pool_num'])
+    kwargs['pool'] = exp.pool
     GlobalVar.set_value('thread_list', [])
     #进度条初始化
     exp.frame_progress.pBar["value"] = 0
@@ -1732,31 +1768,35 @@ def exeCMD(**kwargs):
             wait(GlobalVar.get_value('thread_list'), return_when=ALL_COMPLETED)
             
             for future in GlobalVar.get_value('thread_list'):
-                i = future.result().split("|")
-                #去除取消掉的future任务
-                if future.cancelled() == False:
-                    if 'success' == i[3]:
+                try:
+                    if future.result():
                         i = future.result().split("|")
-                        #根据返回值生成一条扫描记录
-                        scan_one_record = ScanRecord(
-                            target = i[0],
-                            appName = i[1],
-                            pocname = i[2],
-                            last_status = i[3],
-                            last_time = i[4],
-                        )
-                        #插入前+1
-                        temp += 1
-                        #插入扫描记录
-                        myvuldatabase.tree.insert("","end",values=(
-                            temp,
-                            scan_one_record.target, 
-                            scan_one_record.appName,
-                            scan_one_record.pocname,
-                            scan_one_record.last_status,
-                            scan_one_record.last_time,
-                            )
-                        )
+                        #去除取消掉的future任务
+                        if future.cancelled() == False:
+                            if 'success' == i[3]:
+                                i = future.result().split("|")
+                                #根据返回值生成一条扫描记录
+                                scan_one_record = ScanRecord(
+                                    target = i[0],
+                                    appName = i[1],
+                                    pocname = i[2],
+                                    last_status = i[3],
+                                    last_time = i[4],
+                                )
+                                #插入前+1
+                                temp += 1
+                                #插入扫描记录
+                                myvuldatabase.tree.insert("","end",values=(
+                                    temp,
+                                    scan_one_record.target, 
+                                    scan_one_record.appName,
+                                    scan_one_record.pocname,
+                                    scan_one_record.last_status,
+                                    scan_one_record.last_time,
+                                    )
+                                )
+                except CancelledError:
+                    continue
         except Exception as e:
             print('出现错误: %s'%e)
         #结束
@@ -1785,7 +1825,7 @@ def exeCMD(**kwargs):
             myexp_vuln.check(**kwargs)
             exp.frame_progress.pBar["value"] = exp.frame_progress.pBar["value"] + flag
         #进度条开始增长,有个问题:当发送的payload大于线程池数量时,当剩下的payload全部装填满线程池时,进度条才会涨...
-        #解决办法:进度条分两部分，长度共1000，前600分给填充线程池，后400分给判断是否完成
+        #解决办法:进度条分两部分，如长度共1000，前600分给填充线程池，后400分给判断是否完成
         thread_it(autoAdd)
         #阻塞主线程，直到满足条件
         #FIRST_COMPLETED（完成1个）
@@ -1810,40 +1850,44 @@ def exeCMD(**kwargs):
         #成功列表
         result_list = []
         for future in GlobalVar.get_value('thread_list'):
-            i = future.result().split("|")
-            #去除取消掉的future任务
-            if future.cancelled() == False:
-                if future.result() is None:
-                    noresult_num += 1
-                    tb.add_row([str(total_num), name, 'None, Notice:function no return'])
-                else:
-                    if 'success' == i[3]:
-                        success_num += 1
-                        result_list.append('[+] '+i[0]+'   '+i[2]+' -> '+i[3])
-                        #根据返回值生成一条扫描记录
-                        scan_one_record = ScanRecord(
-                            target = i[0],
-                            appName = i[1],
-                            pocname = i[2],
-                            last_status = i[3],
-                            last_time = i[4],
-                        )
-                        #插入前+1
-                        temp += 1
-                        #插入扫描记录
-                        myvuldatabase.tree.insert("","end",values=(
-                            temp,
-                            scan_one_record.target,
-                            scan_one_record.appName,
-                            scan_one_record.pocname,
-                            scan_one_record.last_status,
-                            scan_one_record.last_time,
-                            )
-                        )               
-                    else:
-                        fail_num += 1
-                    tb.add_row([str(total_num), name, i[0]+'   '+i[2]+' -> '+i[3]])
-                total_num += 1
+            try:
+                if future.result():
+                    i = future.result().split("|")
+                    #去除取消掉的future任务
+                    if future.cancelled() == False:
+                        if future.result() is None:
+                            noresult_num += 1
+                            tb.add_row([str(total_num), name, 'None, Notice:function no return'])
+                        else:
+                            if 'success' == i[3]:
+                                success_num += 1
+                                result_list.append('[+] '+i[0]+'   '+i[2]+' -> '+i[3])
+                                #根据返回值生成一条扫描记录
+                                scan_one_record = ScanRecord(
+                                    target = i[0],
+                                    appName = i[1],
+                                    pocname = i[2],
+                                    last_status = i[3],
+                                    last_time = i[4],
+                                )
+                                #插入前+1
+                                temp += 1
+                                #插入扫描记录
+                                myvuldatabase.tree.insert("","end",values=(
+                                    temp,
+                                    scan_one_record.target,
+                                    scan_one_record.appName,
+                                    scan_one_record.pocname,
+                                    scan_one_record.last_status,
+                                    scan_one_record.last_time,
+                                    )
+                                )               
+                            else:
+                                fail_num += 1
+                            tb.add_row([str(total_num), name, i[0]+'   '+i[2]+' -> '+i[3]])
+                        total_num += 1
+            except CancelledError:
+                continue
         tb.add_row(['count', name, 'total: %s , success: %s , fail: %s , none: %s'%(str(total_num-1),str(success_num),str(fail_num),str(noresult_num))])
         print(tb)
         for sucess_str in result_list:
@@ -1868,12 +1912,13 @@ def exeCMD(**kwargs):
         color('[*]请输入目标URL!','cyan')
     #结束标志
     #exp.color_switch('red')
+    exp.frame_progress.pBar["value"] = 1000
     #保存本次扫描结果到漏洞库存中
     myvuldatabase.save_tree()
     #渲染颜色
     myvuldatabase.render_color()
     #关闭线程池
-    pool.shutdown()
+    exp.pool.shutdown()
 
 #退出时执行的函数
 def callbackClose():

