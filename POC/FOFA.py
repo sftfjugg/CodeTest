@@ -7,7 +7,7 @@ import os
 
 urllib3.disable_warnings()
 
-token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY0ODYwNjY0NiwiaXNzIjoicmVmcmVzaCJ9.wxOabh_DNP9Ncx-GseyCxzOc-7cOqi6QoVgve6CszA6RG9Bbm64-Y2FlmwzQrs-j5a3NHxQBoEMVv7hyt0E0jg'
+token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY1MzU1MDgwNCwiaXNzIjoicmVmcmVzaCJ9.LX8-MOmwrHA8uP2h9xACu2pgoy74cYUkVgRUO7z8U1GzV74DNiTZ_3TNFrppn843gRvpdhFm6fOBqX6tsGdbxw'
 
 fofa_token = token
 refresh_token = token
@@ -81,14 +81,25 @@ def fofa(word, pag_num, num = 5):
         #获取页面源码
         url = f"https://fofa.info/result?page={i}&qbase64={s}"
         try:
-            text = requests.get(url=url,headers=headers,verify=False,timeout=10,cookies={'fofa_token':fofa_token,'refresh_token':refresh_token}).text
+            text = requests.get(
+                url=url,
+                headers=headers,
+                verify=False,
+                timeout=10,
+                cookies=
+                {
+                    'fofa_token':fofa_token,
+                    'refresh_token':refresh_token
+                }
+            ).text
         except Exception as error:
             print("fofa函数中，获取页面源码时发生错误，错误所在地为text变量。详细错误为：%s"%type(error))
             continue
         tree = etree.HTML(text)
         #提取一个页面所有ip地址
         try:
-            r = tree.xpath('//div[@id="__layout"]//div[@class="showListsContainer"]/div[@class="rightListsMain"]//a[@target="_blank"]/@href')
+            r = tree.xpath('(//span[@class="aSpan"]//a)')
+            # r = tree.xpath('//div[@id="__layout"]//div[@class="showListsContainer"]/div[@class="rightListsMain"]//a[@target="_blank"]/@href')
             #title = tree.xpath('//div[@class="contentLeft"]/p[1]/text()')
             #country = tree.xpath('//div[@class="contentLeft"]/p[3]/a[@class="jumpA"]/text()')
         except Exception as error:
@@ -96,14 +107,20 @@ def fofa(word, pag_num, num = 5):
             return
         if len(r) == 0:
             break
-        for m in range(len(r)):
-            if "//" in r[m]:
-                #将ip地址保存到列表中
-                ip_list.append(r[m])
-                #ip_list.append(r[m]+'  '+ country[m])
-                #ip_list.append(r[m] +'  '+ title[m] +'  '+ country[m])
-            else:
-                pass
+        for tr in r:
+            url = tr.xpath('./@href')[0]
+            ip_list.append(url)
+        # for m in range(len(r)):
+        #     url = r.xpath('//[%s]/@href'%str(m))
+        #     ip_list.append(url)
+
+            # if "//" in r[m]:
+            #     #将ip地址保存到列表中
+            #     ip_list.append(r[m])
+            #     #ip_list.append(r[m]+'  '+ country[m])
+            #     #ip_list.append(r[m] +'  '+ title[m] +'  '+ country[m])
+            # else:
+            #     pass
         index = index + 1
         print(f'[*]第{i}页爬取完毕！')
     ip_list_new = list(set(ip_list))    #将ip地址去重，然后进行保存
@@ -126,6 +143,17 @@ if __name__ == '__main__':
     #os.environ['HTTPS_PROXY'] = '127.0.0.1:8080'
     pag_num = pag_num_fun('app=\"Landray-OA系统\"')
     fofa('app=\"Landray-OA系统\"', pag_num)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
