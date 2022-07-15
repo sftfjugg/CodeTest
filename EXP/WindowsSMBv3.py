@@ -15,8 +15,9 @@ class WindowsSMBv3():
         self.timeout = int(env.get('timeout'))
         self.retry_time = int(env.get('retry_time'))
         self.retry_interval = int(env.get('retry_interval'))
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
+        self.flag = GlobalVar.get_value('flag')
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
+        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
 
     def CVE_2020_0796(self):
         appName = 'WindowsSMBv3'

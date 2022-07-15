@@ -422,7 +422,7 @@ class VulDatabase():
             Text_note['state']='d'
 
     #验证选中
-    def verify(self, flag='', cmd='echo VuLnEcHoPoCSuCCeSS', vuln='False'):
+    def verify(self, flag='', cmd='echo {}'.format(GlobalVar.get_value('flag')), vuln='False'):
         try:
             #验证前清空列表
             VulDatabase.vulns.clear()

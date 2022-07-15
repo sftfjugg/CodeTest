@@ -17,8 +17,9 @@ class ApacheSolr():
         self.timeout = int(env.get('timeout'))
         self.retry_time = int(env.get('retry_time'))
         self.retry_interval = int(env.get('retry_interval'))
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
-        self.linux_cmd = env.get('cmd', 'echo VuLnEcHoPoCSuCCeSS')
+        self.flag = GlobalVar.get_value('flag')
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
+        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
 
         # Change the url format to conform to the program
         self.getipport = urlparse(self.url)
