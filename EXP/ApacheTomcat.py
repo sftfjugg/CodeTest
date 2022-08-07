@@ -220,17 +220,3 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheTomcat, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

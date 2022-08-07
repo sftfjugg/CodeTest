@@ -251,25 +251,3 @@ if __name__ == "__main__":
 	urls = find_by_url('http://www.so50.com/contactus/')
 	urls = find_by_url_deep('http://www.so50.com/contactus/',urls)
 	giveresult(urls, 'http://www.so50.com/contactus/')
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

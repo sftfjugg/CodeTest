@@ -1,8 +1,8 @@
 from concurrent.futures import thread
 from tkinter import StringVar,IntVar
+from tkinter.messagebox import NO
 import os
 import sys
-from tkinter.messagebox import NO
 
 ###获取项目路径###
 curPath = os.path.dirname(os.path.realpath(sys.executable))

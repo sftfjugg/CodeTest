@@ -11,12 +11,6 @@ from Crypto.Cipher import DES
 from urllib import request
 from lxml import etree
 
-#logging.basicConfig(level=logging.INFO,  
-#            format='%(asctime)s %(message)s',
-#            datefmt='%Y-%m-%d  %H:%M:%S %a ',
-#            filename='./log/info.txt',
-#            filemode='a')
-#Dnslog判断
 class Dnslog:
     def __init__(self):
         self.header = {
@@ -59,9 +53,8 @@ class Dnslog:
     def dns_text(self):
         return self.dnslog_cn_text
 
-
 class Ceye(object):
-    def __init__(self, username=None, password=None, token="794851b9e8df2d3964cde6d0786a2f2d"):
+    def __init__(self, username=None, password=None, token="222"):
         self.headers = {'User-Agent': 'curl/7.80.0'}
         self.token = token
         self.username = username
