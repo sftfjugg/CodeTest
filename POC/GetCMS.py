@@ -1,13 +1,13 @@
+# -*- coding: utf-8 -*-
 from urllib.parse import urlparse
-import copy
-import time,urllib3
-import types
-import re,random,requests
-#from lib.URL_getCMS_lib import ruleDatas
+from ClassCongregation import AttribDict,Logger
+import urllib3
+import requests
+import re
 urllib3.disable_warnings()
 
 ruleDatas = {
-    "Shiro": {
+    "ApacheShiro": {
         "regex": "(=deleteMe|rememberMe=)",
         "type": "headers",
     },
@@ -31,12 +31,8 @@ ruleDatas = {
         "regex": "(分布式任务调度平台XXL-JOB)",
         "type": "bodys",
     },
-    "weblogic": {
+    "OracleWeblogic": {
         "regex": "(/console/framework/skins/wlsconsole/images/login_WebLogic_branding.png|Welcome to Weblogic Application Server|<i>Hypertext Transfer Protocol -- HTTP/1.1</i>)",
-        "type": "bodys",
-    },
-    "用友致远oa": {
-        "regex": "(/seeyon/USER-DATA/IMAGES/LOGIN/login.gif)",
         "type": "bodys",
     },
     "Typecho": {
@@ -103,10 +99,6 @@ ruleDatas = {
         "regex": "(HUAWEI SRG2220)",
         "type": "bodys",
     },
-    "蓝凌EIS智慧协同平台": {
-        "regex": "(/scripts/jquery.landray.common.js)",
-        "type": "bodys",
-    },
     "深信服ssl-vpn": {
         "regex": "(login_psw.csp)",
         "type": "bodys",
@@ -142,10 +134,6 @@ ruleDatas = {
     "TP-LINK Wireless WDR3600": {
         "regex": "(TP-LINK Wireless WDR3600)",
         "type": "bodys",
-    },
-    "泛微协同办公OA": {
-        "regex": "(ecology_JSessionid)",
-        "type": "headers",
     },
     "华为_HUAWEI_ASG2050": {
         "regex": "(HUAWEI ASG2050)",
@@ -235,7 +223,7 @@ ruleDatas = {
         "regex": "(HUAWEI SRG3250)",
         "type": "bodys",
     },
-    "exchange": {
+    "Exchange": {
         "regex": "(/owa/auth.owa)",
         "type": "bodys",
     },
@@ -307,10 +295,6 @@ ruleDatas = {
         "regex": "(linksys-vpn)",
         "type": "headers",
     },
-    "通达OA": {
-        "regex": "(/static/images/tongda.ico)",
-        "type": "bodys",
-    },
     "华为Secoway设备": {
         "regex": "(Secoway)",
         "type": "bodys",
@@ -333,10 +317,6 @@ ruleDatas = {
     },
     "Jboss": {
         "regex": "(Welcome to JBoss|jboss.css)",
-        "type": "bodys",
-    },
-    "Spring": {
-        "regex": "(Whitelabel Error Page)",
         "type": "bodys",
     },
     #########################################
@@ -770,7 +750,7 @@ ruleDatas = {
         "type": "bodys",
     },
 
-    "蓝凌EIS智慧协同平台": {
+    "LandrayOA": {
         "regex": "(/scripts/jquery.landray.common.js | v11_QRcodeBar clr)",
         "type": "bodys",
     },
@@ -1245,7 +1225,7 @@ ruleDatas = {
         "type": "headers",
     },
 
-    "Apache-Solr": {
+    "ApacheSolr": {
         "regex": "(Solr Admin|SolrCore Initialization Failures|app_config.solr_path)",
         "type": "bodys",
     },
@@ -2886,7 +2866,7 @@ ruleDatas = {
     },
 
     "beecms": {
-        "regex": "(powerd by | BEESCMS | template/default/images/slides.min.jquery.js)",
+        "regex": "(BEESCMS | template/default/images/slides.min.jquery.js)",
         "type": "bodys",
     },
 
@@ -4115,16 +4095,6 @@ ruleDatas = {
         "type": "bodys",
     },
 
-    "通达OA": {
-        "regex": "(<link rel=shortcut icon href=/images/tongda.ico /> | OA提示：不能登录OA | 紧急通知：今日10点停电 | Office Anywhere 2013| body = <a href='http://www.tongda2000.com/' target='_black'>通达官网</a></div>)",
-        "type": "bodys",
-    },
-
-    "OA(a8/seeyon/ufida)": {
-        "regex": "(/seeyon/USER-DATA/IMAGES/LOGIN/login.gif)",
-        "type": "bodys",
-    },
-
     "yongyoufe": {
         "regex": "(FE协作 | V_show | V_hedden)",
         "type": "bodys",
@@ -4205,11 +4175,6 @@ ruleDatas = {
         "type": "bodys",
     },
 
-    "泛微OA": {
-        "regex": "(/js/jquery/jquery_wev8.js|/login/Login.jsp?logintype=1)",
-        "type": "bodys",
-    },
-
     "中望OA": {
         "regex": "(/app_qjuserinfo/qjuserinfoadd.jsp | /IMAGES/default/first/xtoa_logo.png)",
         "type": "bodys",
@@ -4240,11 +4205,6 @@ ruleDatas = {
         "type": "bodys",
     },
 
-    "用友致远oa": {
-        "regex": "(/seeyon/USER-DATA/IMAGES/LOGIN/login.gif | 用友致远A | /yyoa/ | /seeyon/common/all-min.js)",
-        "type": "bodys",
-    },
-
     "WordPress": {
         "regex": "(/wp-login.php?|wp-user)",
         "type": "bodys",
@@ -4267,80 +4227,58 @@ ruleDatas = {
         "type": "bodys",
         "path": "/?s=index2/index/index",
     },
-    "蓝凌OA": {
-        "regex": "(管理员登录)",
+    "LandrayOA": {
+        "regex": "(vcode.jsp)",
         "type": "bodys",
         "path": "/admin.do",
     },
+    "ApacheTomcat": {
+        "regex": "(Apache Tomcat)",
+        "type": "bodys",
+        "path": "/examples",
+    },
+    "SeeyonOA": {
+        "regex": "(/seeyon/USER-DATA/IMAGES/LOGIN/login.gif | /seeyon/USER-DATA/IMAGES/LOGIN/login.gif | /seeyon/USER-DATA/IMAGES/LOGIN/login.gif | 用友致远A | /yyoa/ | /seeyon/common/all-min.js)",
+        "type": "bodys",
+    },
+    "Spring": {
+        "regex": "(Whitelabel Error Page)",
+        "type": "bodys",
+    },
+    "Tongda": {
+        "regex": "(/static/images/tongda.ico | <link rel=shortcut icon href=/images/tongda.ico /> | OA提示：不能登录OA | 紧急通知：今日10点停电 | Office Anywhere 2013| body = <a href='http://www.tongda2000.com/' target='_black'>通达官网</a></div>)",
+        "type": "bodys",
+    },
+    "Seeyon_E_Bridge": {
+        "regex": "(e-Bridge)",
+        "type": "bodys",
+    },
+    
+    "Seeyon_E_cologyV8": {
+        "regex": "(ecology8)",
+        "type": "bodys",
+    },
+    
+    "Seeyon_E_cologyV9": {
+        "regex": "(ecology9)",
+        "type": "bodys",
+    },
+    
+    "Seeyon_E_cology": {
+        "regex": "(ecology_JSessionid)",
+        "type": "headers",
+    },
+    
+    "Seeyon_E_mobile": {
+        "regex": "(e-mobile)",
+        "type": "bodys",
+    },
+
+    "SeeyonOA": {
+        "regex": "(/js/jquery/jquery_wev8.js|/login/Login.jsp?logintype=1)",
+        "type": "bodys",
+    },
 }
-
-
-class AttribDict(dict):
-    """
-    This class defines the dictionary with added capability to access members as attributes
-    """
-
-    def __init__(self, indict=None, attribute=None):
-        if indict is None:
-            indict = {}
-
-        # Set any attributes here - before initialisation
-        # these remain as normal attributes
-        self.attribute = attribute
-        dict.__init__(self, indict)
-        self.__initialised = True
-
-        # After initialisation, setting attributes
-        # is the same as setting an item
-
-    def __getattr__(self, item):
-        """
-        Maps values to attributes
-        Only called if there *is NOT* an attribute with this name
-        """
-
-        try:
-            return self.__getitem__(item)
-        except KeyError:
-            raise AttributeError("unable to access item '%s'" % item)
-
-    def __setattr__(self, item, value):
-        """
-        Maps attributes to values
-        Only if we are initialised
-        """
-
-        # This test allows attributes to be set in the __init__ method
-        if "_AttribDict__initialised" not in self.__dict__:
-            return dict.__setattr__(self, item, value)
-
-        # Any normal attributes are handled normally
-        elif item in self.__dict__:
-            dict.__setattr__(self, item, value)
-
-        else:
-            self.__setitem__(item, value)
-
-    def __getstate__(self):
-        return self.__dict__
-
-    def __setstate__(self, dict):
-        self.__dict__ = dict
-
-    def __deepcopy__(self, memo):
-        retVal = self.__class__()
-        memo[id(self)] = retVal
-
-        for attr in dir(self):
-            if not attr.startswith('_'):
-                value = getattr(self, attr)
-                if not isinstance(value, (types.BuiltinFunctionType, types.FunctionType, types.MethodType)):
-                    setattr(retVal, attr, copy.deepcopy(value, memo))
-
-        for key, value in self.items():
-            retVal.__setitem__(key, copy.deepcopy(value, memo))
-
-        return retVal
 
 class ruleInfo():
     def __init__(self, webInfo):
@@ -4351,14 +4289,16 @@ class ruleInfo():
     def main(self):
         for cms in ruleDatas:
             rulesRegex = re.compile(ruleDatas[cms]['regex'])
-            
-            #增量正则匹配
+            # print(str(rulesRegex))
+            #增量正则匹配,根据path字段再次请求
             if 'path' in ruleDatas[cms].keys():
                 url = urlparse(list(self.WebInfos.keys())[0])
                 self.webInfo.target = url.scheme + '://' + url.netloc + ruleDatas[cms]['path']
-                self.webInfo.run()
-            
-            #默认正则匹配
+                # 如果额外请求出现错误, 则跳过本次请求
+                if self.webInfo.run() == False:
+                    continue
+
+            # 调用三种识别方式
             if 'headers' == ruleDatas[cms]['type']:
                 result = self.heads(rulesRegex, cms)
                 if result:
@@ -4371,122 +4311,34 @@ class ruleInfo():
                 result = self.codes(rulesRegex, cms)
                 if result:
                     return result
-
-        #所有正则表达式都不匹配的情况
-        webTitle = ""
-        webServer = ""
-        for key in self.WebInfos:
-            if 'server' in self.WebInfos[key][0]:
-                webServer = self.WebInfos[key][0]['server']
-            else:
-                webServer = "None"
-            webTitles = re.findall(self.rex, self.WebInfos[key][1])
-            if webTitles:
-                webTitle = webTitles[0]
-            else:
-                webTitle = "None"
-            print("[{0}]\n".format(time.strftime("%H:%M:%S", time.localtime(
-                ))), 
-                "CMS: " + "None" + '\n', 
-                "WebServer: " + webServer + '\n', 
-                "WebStatus: " + str(self.WebInfos[key][2]) + '\n', 
-                "URL: " + key + '\n', 
-                "WebTitle: "+ webTitle + '\n')
-        return webServer
-        #return str(self.WebInfos[key][2])+','+webServer
-        
-
-    def heads(self, rulesRegex, cms):
-        webTitle = ""
-        webServer = ""
+        # 未识别cms, 则返回server
+        # self.WebInfos == 额外请求返回的字段字典
         for key in list(self.WebInfos):
-            #返回头部字段是否包含server
             if 'server' in self.WebInfos[key][0]:
                 webServer = self.WebInfos[key][0]['server']
-            else:
-                webServer = "None"
-            #获取返回文本里的title
-            try:
-                webTitles = re.findall(self.rex, self.WebInfos[key][1])
-                if webTitles:
-                    webTitle = webTitles[0]
-                else:
-                    webTitle = "None"
-            except Exception as e:
-                webTitle = "None"
-            #遍历返回头部字段值
+                return webServer
+        # 所有正则表达式都不匹配的情况
+        return 'Not Found'
+        
+    def heads(self, rulesRegex, cms):
+        for key in list(self.WebInfos):
+            # 遍历返回头部字段值
             for head in self.WebInfos[key][0]:
                 resHeads = re.findall(rulesRegex, self.WebInfos[key][0][head])
                 if resHeads:
-                    print("[{0}]\n".format(time.strftime("%H:%M:%S", time.localtime(
-                        ))), 
-                        "CMS: " + cms + '\n', 
-                        "WebServer: " + webServer + '\n', 
-                        "WebStatus: " + str(self.WebInfos[key][2]) + '\n', 
-                        "URL: " + key + '\n', 
-                        "WebTitle: "+ webTitle + '\n')
-                    #return str(self.WebInfos[key][2])+','+cms
                     return cms
-
-                    
+                
     def bodys(self, rulesRegex, cms):
-        webTitle = ""
-        webServer = ""
         for key in list(self.WebInfos):
-            if 'server' in self.WebInfos[key][0]:
-                webServer = self.WebInfos[key][0]['server']
-            else:
-                webServer = "None"
-            #获取返回文本里的title
-            try:
-                webTitles = re.findall(self.rex, self.WebInfos[key][1])
-                if webTitles:
-                    webTitle = webTitles[0]
-                else:
-                    webTitle = "None"
-            except Exception as e:
-                webTitle = "None"
             resCodes = re.findall(rulesRegex, self.WebInfos[key][1])
             if resCodes:
-                print("[{0}]\n".format(time.strftime("%H:%M:%S", time.localtime(
-                    ))), 
-                    "CMS: " + cms + '\n', 
-                    "WebServer: " + webServer + '\n', 
-                    "WebStatus: " + str(self.WebInfos[key][2]) + '\n', 
-                    "URL: " + key + '\n', 
-                    "WebTitle: "+ webTitle + '\n')
-                #return str(self.WebInfos[key][2])+','+cms
                 return cms
 
     def codes(self, rulesRegex, cms):
-        webTitle = ""
-        webServer = ""
         for key in list(self.WebInfos):
-            #返回头部字段是否包含server
-            if 'server' in self.WebInfos[key][0]:
-                webServer = self.WebInfos[key][0]['server']
-            else:
-                webServer = "None"
-            #获取返回文本里的title
-            try:
-                webTitles = re.findall(self.rex, self.WebInfos[key][1])
-                if webTitles:
-                    webTitle = webTitles[0]
-                else:
-                    webTitle = "None"
-            except Exception as e:
-                webTitle = "None"
             resCodes = re.findall(rulesRegex, str(self.WebInfos[key][2]))
             if resCodes:
-                print("[{0}]\n".format(time.strftime("%H:%M:%S", time.localtime(
-                    ))), 
-                    "CMS: " + cms + '\n', 
-                    "WebServer: " + webServer + '\n', 
-                    "WebStatus: " + str(self.WebInfos[key][2]) + '\n',
-                    "URL: " + key + '\n', 
-                    "WebTitle: "+ webTitle + '\n')
                 return cms
-
 
 class webInfo():
     def __init__(self, target, WebInfos):
@@ -4494,6 +4346,7 @@ class webInfo():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 
             'Connection': 'close', 
             'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         }
         self.target = target
@@ -4509,7 +4362,7 @@ class webInfo():
         shiroCookie = {'rememberMe': '1'}
         s.cookies.update(shiroCookie)
         try:
-            req = s.get(self.target, timeout=2)
+            req = s.get(self.target, timeout=3)
             webHeaders = req.headers
             webCodes = req.text
             #webCodes = req.text
@@ -4519,49 +4372,58 @@ class webInfo():
             req.close()
             return True
         except requests.exceptions.ReadTimeout:
-            print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
-                ))), self.target, '请求超时')
-            return None
+            Logger.error('[POC][GetCMS] '+ self.target + ' 请求超时')
+            # print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
+            #     ))), self.target, '请求超时')
+            return False
         except requests.exceptions.ConnectionError:
-            print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
-                ))), self.target, '连接错误')
-            return None
+            Logger.error('[POC][GetCMS] '+ self.target + ' 连接错误')
+            # print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
+            #     ))), self.target, '连接错误')
+            return False
         except requests.exceptions.ChunkedEncodingError:
-            print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
-                ))), self.target, '编码错误')
-            return None
-        except Exception as e:
-            print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
-                ))), self.target, '未知错误')
-            return None
+            Logger.error('[POC][GetCMS] '+ self.target + ' 编码错误')
+            # print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
+            #     ))), self.target, '编码错误')
+            return False
+        except Exception as error:
+            Logger.error('[POC][GetCMS] '+ self.target + ' ' + str(error))
+            # print("[{0}]".format(time.strftime("%H:%M:%S", time.localtime(
+            #     ))), self.target, '未知错误')
+            return False
 
-
-print("[*]识别CMS同时判断链接是否存活!")
 def check(**kwargs):
     WebInfos = AttribDict()
     try:
-        urls = kwargs['url'].strip('/')#/*str*/
+        urls = kwargs['url'].strip('/')
         WebInfos_1 = webInfo(urls, WebInfos)
-        WebInfos_2 = webInfo(urls.replace('http','https'), WebInfos)
-
         if WebInfos_1.run():
             ruleInfos = ruleInfo(WebInfos_1)
+            # 调用识别算法
             webServer = ruleInfos.main()
             return webServer
-        elif WebInfos_2.run():
-            ruleInfos = ruleInfo(WebInfos_2)
-            webServer = ruleInfos.main()
-            return webServer
+        # 第一次请求出现错误, 说明目标网络环境不通, 直接返回None
         else:
-            return None
-    except Exception as e:
-        print('执行脚本出错 %s'%type(e))
+            return 'None'
+    except Exception as error:
+        Logger.error('[POC][GetCMS] '+ str(error))
+        return 'None'
+
+def api(url):
+    WebInfos = AttribDict()
+    try:
+        WebInfos_1 = webInfo(url, WebInfos)
+        if WebInfos_1.run():
+            ruleInfos = ruleInfo(WebInfos_1)
+            # 调用识别算法
+            webServer = ruleInfos.main()
+            return webServer
+        # 第一次请求出现错误, 说明目标网络环境不通, 直接返回None
+        else:
+            return 'None'
+    except Exception as error:
+        Logger.error('[POC][GetCMS] '+ str(error))
+        return 'None'
         
 if __name__ == "__main__":
-    check(**{'url':'https://example.com/login.jsp'})
-
-
-
-
-
-
+    print(check(**{'url':'http://js.jxedu.gov.cn/'}))

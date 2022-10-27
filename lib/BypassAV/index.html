@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Windows提权/杀软在线对比</title>
+<script src="./js/tq.js"></script>
+<script src="./js/av1.js"></script>
+<script src="./js/av2.js"></script>
+</head>
+
+<body>
+<div style="width: 800px; margin: 10px auto;">
+<h2>Windows提权/杀软在线对比</h2>
+<h4>
+<button type="submit" class="button_" onclick="tq();">常见提权进程</button>
+<button type="submit" class="button_" onclick="av1();">常见杀毒进程</button>
+<button type="submit" class="button_" onclick="av2();">不常见杀毒进程</button>
+</h4>
+<textarea rows="15" id="tasklist" style="width:100%;resize:none;" name="input_process"></textarea>
+<textarea rows="5" id="result" style="width:100%;resize:none;" name="av_process" disabled="disabled"></textarea>
+</div>
+</body>
+
+<script>
+function tq() {
+    var tasklist = document.getElementById('tasklist').value;
+    var result = document.getElementById('result');
+    if (tasklist != "" && tasklist) {
+        var re = new RegExp("(.*?)\.exe", "g");
+        var tasks = tasklist.match(re);
+        if (tasks) {
+            var htmlContent = "";
+            for (i = 0; i < Object.keys(tqList).length; i++) {
+                var taskid = Object.keys(tqList)[i];
+                for (x = 0; x < tasks.length; x++) {
+                    if (taskid.toLowerCase() == tasks[x].toLowerCase()) {
+                        htmlContent += taskid + "：" + tqList[taskid] + "\n";
+                    }
+                }
+            }
+            result.innerHTML = htmlContent;
+
+        } else {
+            result.innerHTML = '暂无匹配，欢迎补充！';
+        }
+
+    } else {
+        result.innerHTML = '请输入！';
+    }
+}
+
+function av1() {
+    var tasklist = document.getElementById('tasklist').value;
+    var result = document.getElementById('result');
+    if (tasklist != "" && tasklist) {
+        var re = new RegExp("(.*?)\.exe", "g");
+        var tasks = tasklist.match(re);
+        if (tasks) {
+            var htmlContent = "";
+            for (i = 0; i < Object.keys(avList).length; i++) {
+                var taskid = Object.keys(avList)[i];
+                for (x = 0; x < tasks.length; x++) {
+                    if (taskid.toLowerCase() == tasks[x].toLowerCase()) {
+                        htmlContent += taskid + "：" + avList[taskid] + "\n";
+                    }
+                }
+            }
+            result.innerHTML = htmlContent;
+
+        } else {
+            result.innerHTML = '暂无匹配，欢迎补充！';
+        }
+
+    } else {
+        result.innerHTML = '请输入！';
+    }
+}
+
+function av2() {
+    var tasklist = document.getElementById('tasklist').value;
+    var result = document.getElementById('result');
+    if (tasklist != "" && tasklist) {
+        var re = new RegExp("(.*?)\.exe", "g");
+        var tasks = tasklist.match(re);
+        if (tasks) {
+            var htmlContent = "";
+            for (i = 0; i < Object.keys(avList1).length; i++) {
+                var taskid = Object.keys(avList1)[i];
+                for (x = 0; x < tasks.length; x++) {
+                    if (taskid.toLowerCase() == tasks[x].toLowerCase()) {
+                        htmlContent += taskid + "：" + avList1[taskid] + "\n";
+                    }
+                }
+            }
+            result.innerHTML = htmlContent;
+
+        } else {
+            result.innerHTML = '暂无匹配，欢迎补充！';
+        }
+
+    } else {
+        result.innerHTML = '请输入！';
+    }
+}
+</script>
+</html> 

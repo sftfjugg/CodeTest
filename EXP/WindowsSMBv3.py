@@ -12,12 +12,9 @@ class WindowsSMBv3():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = int(env.get('timeout'))
-        self.retry_time = int(env.get('retry_time'))
-        self.retry_interval = int(env.get('retry_interval'))
         self.flag = GlobalVar.get_value('flag')
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
-        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo '+self.flag)
+        self.linux_cmd = env.get('cmd', 'echo '+self.flag)
 
     def CVE_2020_0796(self):
         appName = 'WindowsSMBv3'
@@ -29,7 +26,7 @@ class WindowsSMBv3():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             sock = socket.socket(socket.AF_INET)

@@ -1,67 +1,74 @@
+# -*- coding: utf-8 -*-
 from settings import Ent_C_Top_vulname,Ent_C_Top_cmsname,Ent_C_Top_cvename,Ent_C_Top_version,Ent_C_Top_info,Ent_C_Top_template, \
     Ent_C_Top_url,Ent_C_Top_path,Ent_C_Top_reqmethod, \
-    exp_scripts, \
-    mycheck,exp
-from tkinter import Toplevel,Frame,Label,Entry,ttk,Button,Text,Scrollbar,messagebox
-from tkinter import S,W,E,N,INSERT
+    exp_scripts
+from tkinter import LEFT, Toplevel,Frame,Label,Entry,ttk,Button,Text,messagebox,scrolledtext
+from tkinter import S,W,E,X,Y,N,INSERT,BOTH,RIGHT,TOP,BOTTOM,NONE
 from core.yamlfile import YamlFile
 from jinja2 import Environment, PackageLoader
 from urllib.parse import urlparse
 import math
-#根据模板生成EXP类
+# 根据模板生成EXP类
 class CreateExp():
     def __init__(self, gui):
         self.Creat = Toplevel(gui.root)
         self.Creat.title("EXP生成")
         self.Creat.geometry('1060x650+480+20')
         self.Creat.iconbitmap('python.ico')
-        self.Creat.resizable(width=False, height=False)#不允许扩大
+        # 不允许扩大
+        # self.Creat.resizable(width=False, height=False)
         self.columns = ("变量", "操作", "值", "逻辑")
         self.variable = []
         self.operation = []
         self.Value = []
         self.logic = []
 
-        #左边
-        self.frm_A = Frame(self.Creat, width=520, height=650, bg="white")
-        #右边
-        self.frm_B = Frame(self.Creat, width=540, height=650, bg="white")
-        self.frm_A.grid(row=0, column=0, padx=2, pady=2)
-        self.frm_B.grid(row=0, column=1, padx=2, pady=2)
-        self.frm_A.grid_propagate(0)
-        self.frm_B.grid_propagate(0)
+        # 左边
+        self.frm_A = Frame(self.Creat, width=520, height=650, bg="whitesmoke")
+        # 右边
+        self.frm_B = Frame(self.Creat, width=540, height=650, bg="whitesmoke")
+        self.frm_A.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frm_B.pack(side=RIGHT, expand=1, fill=BOTH)
 
-        #左上
-        self.frm_A_1 = Frame(self.frm_A, width=520, height=330, bg="white")
-        #左下
-        self.frm_A_2 = Frame(self.frm_A, width=520, height=320, bg="white")
-        self.frm_A_1.grid(row=0, column=0, padx=1, pady=1)
-        self.frm_A_2.grid(row=1, column=0, padx=1, pady=1)
-        self.frm_A_1.grid_propagate(0)
-        self.frm_A_2.grid_propagate(0)
-
-        self.Lab_A_1_1 = Label(self.frm_A_1, text='脚本名称(类名)')#显示
-        self.Ent_A_1_1 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_vulname) #接受输入控件
+        # 左上
+        self.frm_A_1 = Frame(self.frm_A, width=520, height=330, bg="whitesmoke")
+        # 左下
+        self.frm_A_2 = Frame(self.frm_A, width=520, height=320, bg="whitesmoke")
+        self.frm_A_1.pack(side=TOP, expand=0, fill=X)
+        self.frm_A_2.pack(side=BOTTOM, expand=1, fill=BOTH)
+        
+        # 显示
+        self.Lab_A_1_1 = Label(self.frm_A_1, text='脚本名称(类名)')
+        # 接受输入控件
+        self.Ent_A_1_1 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_vulname)
         self.Lab_A_1_1.grid(row=0, column=0,padx=20, pady=10, sticky=W)
         self.Ent_A_1_1.grid(row=0, column=1,padx=20, pady=10, sticky=W)
-
-        self.Lab_A_1_2 = Label(self.frm_A_1, text='CMS名称')#显示
-        self.Ent_A_1_2 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_cmsname) #接受输入控件
+        
+        # 显示
+        self.Lab_A_1_2 = Label(self.frm_A_1, text='CMS名称')
+        # 接受输入控件
+        self.Ent_A_1_2 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_cmsname)
         self.Lab_A_1_2.grid(row=1, column=0,padx=20, pady=10, sticky=W)
         self.Ent_A_1_2.grid(row=1, column=1,padx=20, pady=10, sticky=W)
-
-        self.Lab_A_1_3 = Label(self.frm_A_1, text='CVE编号(函数名)')#显示
-        self.Ent_A_1_3 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_cvename) #接受输入控件
+        
+        # 显示
+        self.Lab_A_1_3 = Label(self.frm_A_1, text='CVE编号(函数名)')
+        # 接受输入控件
+        self.Ent_A_1_3 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_cvename)
         self.Lab_A_1_3.grid(row=2, column=0,padx=20, pady=10, sticky=W)
         self.Ent_A_1_3.grid(row=2, column=1,padx=20, pady=10, sticky=W)
-
-        self.Lab_A_1_4 = Label(self.frm_A_1, text='版本信息\漏洞描述')#显示
-        self.Ent_A_1_4 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_version) #接受输入控件
+        
+        # 显示
+        self.Lab_A_1_4 = Label(self.frm_A_1, text='版本信息\漏洞描述')
+        # 接受输入控件
+        self.Ent_A_1_4 = Entry(self.frm_A_1, width=35, highlightcolor='red', highlightthickness=1, textvariable=Ent_C_Top_version)
         self.Lab_A_1_4.grid(row=3, column=0,padx=20, pady=10, sticky=W)
         self.Ent_A_1_4.grid(row=3, column=1,padx=20, pady=10, sticky=W)
 
-        self.Lab_A_1_5 = Label(self.frm_A_1, text='info')#显示
-        self.comboxlist_A_1_4 = ttk.Combobox(self.frm_A_1,width=20,textvariable=Ent_C_Top_info,state='readonly') #接受输入控件
+        # 显示
+        self.Lab_A_1_5 = Label(self.frm_A_1, text='info')
+        # 接受输入控件
+        self.comboxlist_A_1_4 = ttk.Combobox(self.frm_A_1,width=20,textvariable=Ent_C_Top_info,state='readonly')
         self.comboxlist_A_1_4["values"] = tuple(["[rce]","[deserialization rce]",
                                             "[upload]",
                                             "[deserialization upload]",
@@ -78,22 +85,22 @@ class CreateExp():
         self.frm_A_2_1 = Frame(self.frm_A_2, width=430, height=320,bg='whitesmoke')
         #左下右
         self.frm_A_2_2 = Frame(self.frm_A_2, width=90, height=320,bg='whitesmoke')
-        self.frm_A_2_1.grid(row=0, column=0,sticky=W)
-        self.frm_A_2_2.grid(row=0, column=1,sticky=W)
-        self.frm_A_2_1.grid_propagate(0)
-        self.frm_A_2_2.grid_propagate(0)
-
-        self.treeview_A_2 = ttk.Treeview(self.frm_A_2_1, height=16, show="headings", columns=self.columns)  # 表格
-        self.treeview_A_2.column("变量", width=90, anchor='w')#表示列,不显示
+        self.frm_A_2_1.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frm_A_2_2.pack(side=RIGHT, expand=0, fill=Y)
+        
+        # 表格
+        self.treeview_A_2 = ttk.Treeview(self.frm_A_2_1, height=16, show="headings", columns=self.columns)
+        self.treeview_A_2.column("变量", width=90, anchor='w')
         self.treeview_A_2.column("操作", width=90, anchor='w')
         self.treeview_A_2.column("值", width=200, anchor='w')
         self.treeview_A_2.column("逻辑", width=50, anchor='w')
-        self.treeview_A_2.heading("变量", text="变量")#显示表头
-        self.treeview_A_2.heading("操作", text="操作")#显示表头
-        self.treeview_A_2.heading("值", text="值")#显示表头
-        self.treeview_A_2.heading("逻辑", text="逻辑")#显示表头
-        self.treeview_A_2.bind('<Double-Button-1>', self.set_cell_value) # 双击左键进入编辑
-        self.treeview_A_2.grid(row=0, column=0, padx=1, pady=1)
+        self.treeview_A_2.heading("变量", text="变量")
+        self.treeview_A_2.heading("操作", text="操作")
+        self.treeview_A_2.heading("值", text="值")
+        self.treeview_A_2.heading("逻辑", text="逻辑")
+        # 双击左键进入编辑
+        self.treeview_A_2.bind('<Double-Button-1>', self.set_cell_value)
+        self.treeview_A_2.pack(expand=1, fill=BOTH)
         
         self.button_1 = Button(self.frm_A_2_2, text='<-添加', width=10, command=self.newrow)
         self.button_2 = Button(self.frm_A_2_2, text='<-删除', width=10, command=self.deltreeview)
@@ -102,31 +109,27 @@ class CreateExp():
 
         self.frm_B_1 = Frame(self.frm_B, width=540, height=40, bg="whitesmoke")
         self.frm_B_2 = Frame(self.frm_B, width=540, height=610, bg="whitesmoke")
-        self.frm_B_1.grid(row=0, column=0, padx=1, pady=1)
-        self.frm_B_2.grid(row=1, column=0, padx=1, pady=1)
-        self.frm_B_1.grid_propagate(0)
-        self.frm_B_2.grid_propagate(0)
-
-        self.comboxlist_B = ttk.Combobox(self.frm_B_1,width=20,textvariable=Ent_C_Top_template,state='readonly') #接受输入控件
+        self.frm_B_1.pack(side=TOP, expand=0, fill=X)
+        self.frm_B_2.pack(side=TOP, expand=1, fill=BOTH)
+        
+        # 接受输入控件
+        self.comboxlist_B = ttk.Combobox(self.frm_B_1,width=20,textvariable=Ent_C_Top_template,state='readonly')
         self.comboxlist_B['values'] = tuple(['POC','EXP'])
         self.comboxlist_B.bind("<<ComboboxSelected>>", self.SelectTemplate)
         self.button_3 = Button(self.frm_B_1, text='生成EXP', width=6, command=self.Creat_from_temp)
         self.button_4 = Button(self.frm_B_1, text='保存EXP', width=6, command=self.Save_from_temp)
         self.button_5 = Button(self.frm_B_1, text='导入xray', width=6, command=lambda:YamlFile(self.Creat,self.text_B))
         
-        self.comboxlist_B.grid(row=0, column=0, padx=1, pady=1, sticky=W)
-        self.button_3.grid(row=0, column=1, padx=2, pady=2, sticky=W)
-        self.button_4.grid(row=0, column=2, padx=2, pady=2, sticky=W)
-        self.button_5.grid(row=0, column=3, padx=2, pady=2, sticky=W)
-
-        self.text_B = Text(self.frm_B_2, font=("consolas",9), width=63, height=33)
-        self.Scr_B = Scrollbar(self.frm_B_2)  #滚动条控件
-        self.text_B.grid(row=0, column=0)
-        self.Scr_B.grid(row=0, column=1, sticky=S + W + E + N)
-        self.Scr_B.config(command=self.text_B.yview)
-        self.text_B.config(yscrollcommand=self.Scr_B.set)
-        #关联回调函数
+        self.comboxlist_B.pack(side=LEFT, expand=0, fill=X)
+        self.button_3.pack(side=LEFT, expand=0, fill=X)
+        self.button_4.pack(side=LEFT, expand=0, fill=X)
+        self.button_5.pack(side=LEFT, expand=0, fill=X)
+        
+        self.text_B = scrolledtext.ScrolledText(self.frm_B_2, font=("consolas", 9), width=63, height=33)
+        self.text_B.pack(expand=1, fill=BOTH)
+        # 关联回调函数
         self.Creat.protocol("WM_DELETE_WINDOW", self.close)
+
     def hide(self):
         """
         隐藏界面
@@ -147,6 +150,8 @@ class CreateExp():
         self.hide()
         
     def Creat_from_temp(self):
+        import util.globalvar as GlobalVar
+        mycheck = GlobalVar.get_value('mycheck')
         try:
             self.text_B.delete('1.0','end')
             env = Environment(loader=PackageLoader('Template', './'))
@@ -210,7 +215,7 @@ class CreateExp():
             messagebox.showinfo(title='错误', message=error)
 
     def Save_from_temp(self):
-        global exp_scripts,exp
+        global exp_scripts
         save_data = str(self.text_B.get('0.0','end').strip('\n'))
         if save_data == '':
             messagebox.showinfo(title='提示', message='没有数据')
@@ -299,7 +304,7 @@ class CreateExp():
         finally:
             self.entryedit.destroy()
 
-    def saveCom(self,event):
+    def saveCom(self, event):
         try:
             self.treeview_A_2.set(self.item, column=self.column, value=self.tempCom.get())
             #a = self.tempCom.get()
@@ -320,7 +325,7 @@ class CreateExp():
         self.operation.append('')
         self.Value.append('')
         self.logic.append('')
-        #解决BUG, insert函数如果不指定iid, 则会自动生成item标识, 此操作不会因del而回转
+        # 解决BUG, insert函数如果不指定iid, 则会自动生成item标识, 此操作不会因del而回转
         try:
             self.treeview_A_2.insert('', 'end',
                             iid='I00'+str(len(self.variable)),

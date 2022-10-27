@@ -1,21 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-   File Name：     proxyFetcher
-   Description :
-   Author :        JHao
-   date：          2016/11/25
--------------------------------------------------
-   Change Activity:
-                   2016/11/25: proxyFetcher
--------------------------------------------------
-"""
-__author__ = 'JHao'
-import re
-from time import sleep
-
 from Proxy.WebRequest import WebRequest
+from time import sleep
+import util.globalvar as GlobalVar
 
+import re
+import json
+import base64
+import datetime
 class ProxyFetcher(object):
     """
     proxy getter
@@ -43,11 +34,11 @@ class ProxyFetcher(object):
                     ip = ''.join(tr.xpath('./td[2]/text()'))
                     port_img = ''.join(tr.xpath('./td[3]/img/@src')).split("port=")[-1]
                     port = port_img_map.get(port_img[14:].replace('O0O', ''))
-                    https = ''.join(tr.xpath('./td[4]/text()'))
+                    protocol = ''.join(tr.xpath('./td[4]/text()'))
                     anonymous = ''.join(tr.xpath('./td[5]/text()'))
                     if port:
                         proxy = ip+':'+port
-                        yield '%s|%s|%s' % (proxy, https, anonymous)
+                        yield '%s|%s|%s' % (proxy, protocol, anonymous)
                 except Exception as e:
                     print(e)
 
@@ -175,9 +166,9 @@ class ProxyFetcher(object):
             for tr in proxy_list[1:]:
                 ip = tr.xpath('./td[1]/a/text()')[0]
                 port = tr.xpath('./td[2]/text()')[0]
-                https = tr.xpath('./td[5]/text()')[0]
+                protocol = tr.xpath('./td[5]/text()')[0]
                 anonymous = tr.xpath('./td[7]/a/text()')[0]
-                yield ip+':'+port+'|'+https+'|'+anonymous
+                yield ip+':'+port+'|'+protocol+'|'+anonymous
             #proxies = re.findall(r'>\s*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*?</a></td><td>(\d+)</td>',
             #                     r.text)
             #for proxy in proxies:
@@ -200,9 +191,9 @@ class ProxyFetcher(object):
                     continue
                 ip = tr.xpath("./td[1]/text()")[0]
                 port = tr.xpath("./td[2]/text()")[0]
-                https = tr.xpath("./td[4]/text()")[0]
+                protocol = tr.xpath("./td[4]/text()")[0]
                 anonymous = tr.xpath("./td[3]/text()")[0]
-                yield ip+':'+port+'|'+https+'|'+anonymous
+                yield ip+':'+port+'|'+protocol+'|'+anonymous
             #for index, tr in enumerate(html_tree.xpath("//table//tr")):
             #    if index == 0:
             #        continue
@@ -281,13 +272,158 @@ class ProxyFetcher(object):
             sleep(1)  # 必须sleep 不然第二条请求不到数据
             for tr in proxy_list[1:]:
                 proxy = tr.xpath('./td[1]/text()')[0]
-                https = tr.xpath('./td[2]/text()')[0]
+                protocol = tr.xpath('./td[2]/text()')[0]
                 anonymous = tr.xpath('./td[3]/text()')[0]
-                yield proxy+'|'+https+'|'+anonymous
+                yield proxy+'|'+protocol+'|'+anonymous
             #ips = re.findall(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}", r.text)
             #for ip in ips:
             #    yield ip.strip()
 
+    @staticmethod
+    def freeProxy15(page_count=3):
+        """
+        https://www.proxy-list.download
+        proxy-list
+        :return:
+        """
+        url_socks5 = 'https://www.proxy-list.download/api/v2/get?l=en&t=socks5'
+        url_socks4 = 'https://www.proxy-list.download/api/v2/get?l=en&t=socks4'
+        ipdata_list_socks5 = WebRequest().get(url_socks5, timeout=10).json.get('LISTA', [])
+        ipdata_list_socks4 = WebRequest().get(url_socks4, timeout=10).json.get('LISTA', [])
+        ipdata_list = ipdata_list_socks5 + ipdata_list_socks4
+        index = len(ipdata_list_socks5)
+        flag = 1
+        for ipdata in ipdata_list:
+            proxy = f'{str(ipdata.get("IP", "")).strip()}:{str(ipdata.get("PORT", "")).strip()}'
+            if flag <= index:
+                protocol = 'SOCKS5'
+            else:
+                protocol = 'SOCKS4'
+            anonymous= '未知'
+            flag += 1
+            yield proxy+'|'+protocol+'|'+anonymous
+
+    @staticmethod
+    def freeProxy16(page_count=3):
+        """
+        https://list.proxylistplus.com
+        proxylistplus
+        :return:
+        """
+        url = 'https://list.proxylistplus.com/Socks-List-{}'
+        for page in range(1, page_count + 1):
+            tree = WebRequest().get(url.format(page), timeout=10).tree
+            proxy_list = tree.xpath('.//table[@class="bg"]/tr')
+            sleep(1)  # 必须sleep 不然第二条请求不到数据
+            for tr in proxy_list[2:]:
+                proxy = tr.xpath('./td[2]/text()')[0]+':'+tr.xpath('./td[3]/text()')[0]
+                protocol = tr.xpath('./td[4]/text()')[0].upper()
+                anonymous = '高匿' if tr.xpath('./td[6]/text()')[0] == 'Anonymous' else '非高匿'
+                yield proxy+'|'+protocol+'|'+anonymous
+
+    @staticmethod
+    def FOFApi(page_count=3):
+        """
+        https://fofa.info
+        FOFA
+        :return:
+        """
+        import base64
+        """ fofa查询 """
+        email = GlobalVar.get_value('FOFA_EMAIL')
+        key = GlobalVar.get_value('FOFA_KEY')
+        url = 'https://fofa.info/api/v1/search/all?email={}&key={}&qbase64={}&page={}&size={}&fields={}'
+        resp_data = WebRequest().get(
+            url=url.format(email, key, base64.b64encode('protocol=="socks5" && "Version:5 Method:No Authentication(0x00)" && after="2022-02-01" && country="CN"'.encode()).decode(), 1, str(int(page_count)*10), 'ip,port,protocol'),
+            allow_redirects=False, 
+            timeout=10).json
+        fofalist = resp_data.get('results')
+        for ipdata in fofalist:
+            proxy = ipdata[0]+':'+ipdata[1]
+            protocol = ipdata[2].upper()
+            anonymous= '未知'
+            yield proxy+'|'+protocol+'|'+anonymous
+
+    @staticmethod
+    def HunterApi(page_count=3):
+        """
+        https://hunter.qianxin.com/
+        鹰图
+        :return:
+        """
+        api_key = GlobalVar.get_value('QIANXIN_API')
+        qianxin_nums = GlobalVar.get_value('QIANXIN_NUMS')
+        url = f'https://hunter.qianxin.com/openApi/search'
+        now_time = datetime.datetime.now()
+        for page in range(1, page_count+1):
+            params = {
+                'api-key': api_key,
+                'search': base64.urlsafe_b64encode('protocol="socks"'.encode("utf-8")),
+                'page': page, #页码
+                'page_size': qianxin_nums, #每页资产条数
+                'start_time': (now_time - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S"), #开始时间
+                'end_time': now_time.strftime("%Y-%m-%d %H:%M:%S"), #结束时间
+            }
+            resp_data = WebRequest().get(url, params=params, timeout=10).json
+            ipdata_list = resp_data.get('data', {}).get('arr', [])
+            for ipdata in ipdata_list:
+                proxy = f'{str(ipdata.get("ip", "")).strip()}:{str(ipdata.get("port", "")).strip()}'
+                protocol = str(ipdata.get("protocol", "")).upper()
+                anonymous= '未知'
+                yield proxy+'|'+protocol+'|'+anonymous
+
+    @staticmethod
+    def QuakeApi(page_count=3):
+        """
+        https://quake.360.cn/quake/
+        360Quake
+        :return:
+        """
+        X_QuakeToken = GlobalVar.get_value('X-QuakeToken')
+        quake_nums = GlobalVar.get_value('quake_nums')
+        url = f'https://quake.360.cn/api/v3/search/quake_service'
+        headers = {
+            "X-QuakeToken": X_QuakeToken,
+            "Content-Type": "application/json",
+        }
+        # for page in range(1, page_count+1):
+        data = {
+            'query': 'service:"socks5"',
+            'start': 0,
+            'size': quake_nums,
+        }
+        resp_data = WebRequest().post(url=url, header=headers, data=json.dumps(data)).json
+        #print(resp_data)
+        ipdata_list = resp_data.get('data', {})
+        for ipdata in ipdata_list:
+            proxy = f'{str(ipdata.get("ip", "")).strip()}:{str(ipdata.get("port", "")).strip()}'
+            protocol = 'SOCKS5'
+            anonymous= '未知'
+            yield proxy+'|'+protocol+'|'+anonymous
+            
+    @staticmethod
+    def ZoomEyeApi(page_count=3):
+        """
+        https://www.zoomeye.org/
+        ZoomEye
+        :return:
+        """
+        api_key = GlobalVar.get_value('ZOOMEYE_API')
+        url = 'https://api.zoomeye.org/host/search'
+        headers = {"API-KEY": api_key}
+
+        for page in range(1, page_count+1):
+            params = {
+                'query': 'service:"socks5"',
+                'page': page,
+            }
+            resp_data = WebRequest().get(url, params=params, header=headers, timeout=10).json
+            ipdata_list = resp_data.get('matches', {})
+            for ipdata in ipdata_list:
+                proxy = f'{str(ipdata.get("ip", "")).strip()}:{str(ipdata.get("portinfo", "").get("port", "")).strip()}'
+                protocol = str(ipdata.get("portinfo", "").get("service", "")).upper()
+                anonymous= '未知'
+                yield proxy+'|'+protocol+'|'+anonymous
 
 if __name__ == '__main__':
     p = ProxyFetcher()

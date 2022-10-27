@@ -80,7 +80,7 @@ def tcp_mapping_request(local_conn, remote_ip, remote_port):
 def Loadips():
     ip_list = []
     ip = ['ip','port']
-    with open('ips.txt') as ips:
+    with open('ips.json') as ips:
         lines = ips.readlines()
     for line in lines:
         proxy = json.loads(line.strip()).get("proxy", "")

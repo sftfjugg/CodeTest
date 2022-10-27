@@ -7,6 +7,7 @@ passfile = "top100password.txt"
 jsfile = "md5.js"
 encode_fun = "hex_md5"
 
+pwd = "ZzxS@01#{1#2$3%4(5)6@7!poeeww$3%4(5)djjkkldss}"
 
 def info():
     #os.environ["EXECJS_RUNTIME"] = 'Phantomjs'
@@ -18,7 +19,7 @@ def info():
     print("[+]============================================================")
     print("                                                                             ")
 
-def Encode(jsfile, passfile):
+def Encode(jsfile, passfile, enpwd):
     os.environ["EXECJS_RUNTIME"] = 'Phantomjs'
     jsfile = './POC/js_examples/' + jsfile
     passfile = './POC/js_examples/' + passfile
@@ -33,9 +34,13 @@ def Encode(jsfile, passfile):
         with open(passfile, 'r') as strpass:
             for passwd in strpass.readlines():
                 try:
-                    passwd = passwd.strip()
+                    passwd = passwd.strip() + "{1#2$3%4(5)6@7!poeeww$3%4(5)djjkkldss}"
                     mypass = getpass.call(encode_fun, passwd)	#传递参数
-                    print("[+] %s 加密完成: %s"%(passwd,mypass))
+                    if enpwd == mypass:
+                        print("[+] %s 破解成功: %s"%(enpwd,passwd))
+                        return
+                    else:
+                        print("[+] %s 破解失败"%(passwd))
                 except:
                     print("[-] %s 加密失败"%passwd)
                     continue
@@ -43,21 +48,29 @@ def Encode(jsfile, passfile):
 
 #对单一密码进行加密
 def passstring(jsfile, password):
+    jsfile = './POC/js_examples/' + jsfile
     print("[+] 正在进行加密，请稍后......")
     with open (jsfile,'r') as strjs:
         src = strjs.read()
         phantom = execjs.get('PhantomJS')	#调用JS依赖环境
         getpass = phantom.compile(src)	#编译执行js脚本
         mypass = getpass.call(encode_fun, password)	#传递参数
-        print("[+] 加密完成:{}".format(mypass))
+        print("[+] %s 加密完成: %s"%(pwd,mypass))
 
 info()
 def check(**kwargs):
-    t = threading.Thread(target=Encode, args=(jsfile, passfile))
-    t.start()
+    if pwd != "":
+        passstring(jsfile, pwd)
+    else:
+        t = threading.Thread(target=Encode, args=(jsfile, passfile, kwargs['url']))
+        t.start()
 
 if __name__ == "__main__":
-	check(**{"1":"1"})
+    pd = ""
+    passstring(jsfile=jsfile,password=pd)
+
+
+
 
 
 

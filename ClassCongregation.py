@@ -1,22 +1,28 @@
+# -*- coding: utf-8 -*-
 import random,requests,time,binascii,subprocess,re,sys,os,webbrowser
+import util.globalvar as GlobalVar
 import xml.etree.ElementTree as ET
 import tkinter as tk
 import base64
 import threading
 import json
+import types
+import copy
 
-from tkinter import END,ttk
+from tkinter import END,ttk,X
 from urllib.parse import urlparse
 from Crypto.Cipher import DES
 from urllib import request
 from lxml import etree
 
+#Dnslog判断
 class Dnslog:
     def __init__(self):
         self.header = {
 		'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36',
 		'Connection':'close',
         }
+        self.dnslog_cn_text = ''
         try:
             self.host = self.get_dnslog_url()
         except Exception as e:
@@ -37,6 +43,9 @@ class Dnslog:
 
     def result(self) -> bool:
         return self.dnslog_cn_dns()
+    
+    def text(self):
+        return self.dnslog_cn_text
 
     def dnslog_cn_dns(self) -> bool:
         time.sleep(0.5)
@@ -50,15 +59,12 @@ class Dnslog:
         except Exception as e:
             print("[-]寻找%s请求记录时出错"%self.dnslog_cn, e)
 
-    def dns_text(self):
-        return self.dnslog_cn_text
-
 class Ceye(object):
-    def __init__(self, username=None, password=None, token="222"):
+    def __init__(self):
         self.headers = {'User-Agent': 'curl/7.80.0'}
-        self.token = token
-        self.username = username
-        self.password = password
+        self.token = GlobalVar.get('CEYE_API')
+        self.username = GlobalVar.get('CEYE_USERNAME')
+        self.password = GlobalVar.get('CEYE_PASSWORD')
         self.check_account()
 
     #验证token是否有效
@@ -204,12 +210,79 @@ class Ceye(object):
         return self.ceye_cn_dns()
     
     def ceye_cn_dns(self) -> bool:
-        requests.delete(url="https://api.ceye.io/v1/users/self/records?type=dns_records")
+        #requests.delete(url="https://api.ceye.io/v1/users/self/records?type=dns_records")
         info = self.exact_request(self.flag["flag"], type="dns")
         if info == self.value:
             return True
         else:
             return False
+
+class AttribDict(dict):
+    """
+    This class defines the dictionary with added capability to access members as attributes
+    """
+
+    def __init__(self, indict=None, attribute=None):
+        if indict is None:
+            indict = {}
+
+        # Set any attributes here - before initialisation
+        # these remain as normal attributes
+        self.attribute = attribute
+        dict.__init__(self, indict)
+        self.__initialised = True
+
+        # After initialisation, setting attributes
+        # is the same as setting an item
+
+    def __getattr__(self, item):
+        """
+        Maps values to attributes
+        Only called if there *is NOT* an attribute with this name
+        """
+
+        try:
+            return self.__getitem__(item)
+        except KeyError:
+            raise AttributeError("unable to access item '%s'" % item)
+
+    def __setattr__(self, item, value):
+        """
+        Maps attributes to values
+        Only if we are initialised
+        """
+
+        # This test allows attributes to be set in the __init__ method
+        if "_AttribDict__initialised" not in self.__dict__:
+            return dict.__setattr__(self, item, value)
+
+        # Any normal attributes are handled normally
+        elif item in self.__dict__:
+            dict.__setattr__(self, item, value)
+
+        else:
+            self.__setitem__(item, value)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+
+    def __deepcopy__(self, memo):
+        retVal = self.__class__()
+        memo[id(self)] = retVal
+
+        for attr in dir(self):
+            if not attr.startswith('_'):
+                value = getattr(self, attr)
+                if not isinstance(value, (types.BuiltinFunctionType, types.FunctionType, types.MethodType)):
+                    setattr(retVal, attr, copy.deepcopy(value, memo))
+
+        for key, value in self.items():
+            retVal.__setitem__(key, copy.deepcopy(value, memo))
+
+        return retVal
 
 # sql判断
 class Sql_scan:
@@ -277,7 +350,7 @@ class Sql_scan:
 echo_threadLock = threading.Lock()
 class TextRedirector(object):
     #global echo_threadLock
-    def __init__(self, widget, tag="stdout", index="1"):
+    def __init__(self, widget, tag="stdout", index="poc"):
         #同步锁
         self.widget = widget
         self.tag = tag
@@ -297,13 +370,15 @@ class TextRedirector(object):
 
     def write(self, str_raw):
         echo_threadLock.acquire() #获取锁
-        if self.index == "2":#命令执行背景是黑色，字体是绿色。
+        #背景是黑, 字体是白
+        if self.index == "exp":
             self.tag = 'white'
             self.widget.configure(state="normal")
             self.widget.insert(END, str_raw, (self.tag,))
             self.widget.configure(state="disabled")
             self.widget.see(END)
-        else:
+        #背景是白, 字体是黑
+        elif self.index == 'poc':
             self.tag = 'black'
             self.widget.configure(state="normal")
             self.widget.insert(END, str_raw, (self.tag,))
@@ -367,12 +442,20 @@ class FrameProgress(tk.Frame):
                                     style="fp.Horizontal.TProgressbar")
         
         #sticky="wens" 上面length 值会被忽略
-        self.pBar.grid(row=0, column=0, sticky="w")
+        self.pBar.pack(expand=0, fill=X)
+        # self.pBar.grid(row=0, column=0, sticky="w")
 
         #父组件的大小不由子组件决定
         self.grid_propagate(False)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+
+#日志
+class Logger(object):
+    @staticmethod
+    def error(info):
+        now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        sys.stderr.write(now_time + ' [ERROR] '+ info +'\n')
 
 class URL():
     def __init__(self, url):
@@ -428,7 +511,7 @@ def seconds2hms(seconds):
 def color(str, color='black', end='\n'):
     #自动添加\n换行符号,方便自动换行
     sys.stdout.Colored(str+'\n', color, end)
-
+    
 def random_name(index):
     h = "abcdefghijklmnopqrstuvwxyz0123456789"
     salt_cookie = ""
@@ -452,7 +535,7 @@ def byte_to_hex(pw):
 def ysoserial_payload(java_class, java_cmd, java_type='-jar'):
     command = "java {} ysoserial.jar {} \"{}\"".format(java_type,java_class,java_cmd)
     popen = subprocess.Popen(command, stdout=subprocess.PIPE ,shell=True,close_fds=True)
-    out,drr = popen.communicate()
+    out, drr = popen.communicate()
     return out
     #return binascii.hexlify(out).decode()
 
@@ -596,3 +679,9 @@ def delText(text):
     text.configure(state="normal")
     text.delete('1.0','end')
     text.configure(state="disabled")
+
+def thread_it(func, **kwargs):
+    t = threading.Thread(target=func, kwargs=kwargs)
+    t.setDaemon(True)
+    # 启动
+    t.start()

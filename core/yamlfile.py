@@ -28,8 +28,7 @@ class Xray_{vulname}():
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
         self.timeout = env.get('timeout')
-        self.retry_time = env.get('retry_time')
-        self.retry_interval = env.get('retry_interval')
+        self.flag = GlobalVar.get_value('flag')
 
     def {cvename}(self):
         appName = 'Xray_{vulname}'

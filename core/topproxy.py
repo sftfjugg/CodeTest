@@ -15,9 +15,9 @@ class TopProxy():
         self.Proxy.iconbitmap('python.ico')
         self.exchange = self.Proxy.resizable(width=False, height=False)#不允许扩大
 
-        self.frmA = Frame(self.Proxy, width=350, height=50,background='whitesmoke')
-        self.frmB = Frame(self.Proxy, width=350, height=90,background='whitesmoke')
-        self.frmC = Frame(self.Proxy, width=350, height=130,background='whitesmoke')
+        self.frmA = Frame(self.Proxy, width=350, height=50, bg="whitesmoke")
+        self.frmB = Frame(self.Proxy, width=350, height=90, bg="whitesmoke")
+        self.frmC = Frame(self.Proxy, width=350, height=130, bg="whitesmoke")
         self.frmA.grid(row=0, column=0, padx=10, pady=10)
         self.frmB.grid(row=1, column=0, padx=2, pady=2)
         self.frmC.grid(row=2, column=0, padx=2, pady=2)
@@ -37,7 +37,8 @@ class TopProxy():
         self.comboxlistA = ttk.Combobox(self.frmB,width=12,textvariable=variable_dict["PROXY_TYPE"],state='readonly')
         #绑定参数
         self.comboxlistA.bind("<<ComboboxSelected>>", self.bind_combobox_3)
-        self.comboxlistA["values"]=("HTTP","HTTPS","HTTP/HTTPS","SOCKS5","SOCKS4")
+        self.comboxlistA["values"]=("HTTP/HTTPS","SOCKS5","SOCKS4")
+        # self.comboxlistA["values"]=("HTTP","HTTPS","HTTP/HTTPS","SOCKS5","SOCKS4")
         #self.comboxlistA.current(0)
 
         self.LabB = Label(self.frmB, text='IP地址')#显示
@@ -110,6 +111,7 @@ class TopProxy():
                 elif proxy_str == "SOCKS5":
                     proxy_type = socks.SOCKS5
                 socks.set_default_proxy(proxy_type, ip, int(port))
+                # socks.socksocket.settimeout(10)
                 socket.socket = socks.socksocket
             #now = datetime.datetime.now()
             #print("["+str(now)[11:19]+"] " + "[*] 设置代理成功")

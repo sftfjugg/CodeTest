@@ -1,0 +1,4 @@
+2022-10-27 12:36:15 [ERROR] [资产空间][fofa查询] 'NoneType' object is not iterable
+2022-10-27 12:36:20 [ERROR] [资产空间][hunter查询] 'NoneType' object has no attribute 'get'
+2022-10-27 12:37:52 [ERROR] ip反查域名-ip2domain_ip138: list index out of range
+2022-10-27 12:38:18 [ERROR] 通过返回SSL证书的CN实现ip反查域名-ip2domain_ssl_CN: [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。

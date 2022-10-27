@@ -59,9 +59,10 @@ class Exec_Commands():
         self.hide()
     def fillenv(self):
         try:
-            cmd = self.TerminalText.get('0.0','end').strip('\n')        
+            cmd = self.TerminalText.get('0.0','end').strip('\n')
+            # 执行前隐藏命令窗口
+            self.cmdscreen.destroy()   
             if cmd == '':
-                self.cmdscreen.destroy()
                 messagebox.showinfo(title='结果', message='请先输入命令!')
                 return
             #探测所有
@@ -71,10 +72,9 @@ class Exec_Commands():
             else:
                 x = self.tree.selection()
             if len(x) == 0:
-                self.cmdscreen.destroy()
                 messagebox.showinfo(title='结果', message='未选中目标!')
                 return
-            if Proxy_CheckVar1.get() == 0 and len(x) > 10:
+            if Proxy_CheckVar1.get() == 0:
                 if messagebox.askokcancel('提示','程序检测到未挂代理进行扫描,请确认是否继续?') == False:
                     print("[-]扫描已取消!")
                     return

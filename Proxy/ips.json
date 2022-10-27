@@ -1,1 +1,2 @@
-{"proxy": "223.96.90.216:8085", "https": "HTTP", "anonymous": "\u9ad8\u533f\u540d"}
+{"proxy": "49.67.123.249:1080", "protocol": "SOCKS5", "anonymous": "\u672a\u77e5"}
+{"proxy": "39.100.137.12:5555", "protocol": "SOCKS5", "anonymous": "\u672a\u77e5"}

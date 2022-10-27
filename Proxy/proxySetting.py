@@ -60,9 +60,11 @@ VERSION = "2.3.0"
 
 # ############# proxy validator #################
 # 代理验证目标网站
-HTTP_URL = "http://httpbin.org/ip"
+# HTTP_URL = "http://httpbin.org/ip"
+# HTTPS_URL = "https://httpbin.org/ip"
 
-HTTPS_URL = "https://httpbin.org/ip"
+HTTP_URL = 'http://example.com'
+HTTPS_URL = 'https://example.com'
 
 # 代理验证时超时时间
 VERIFY_TIMEOUT = 3

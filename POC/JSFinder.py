@@ -9,7 +9,7 @@ black_suf = ['vue','svg','css','gif','js','jpg','png','html']
 header = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36",
 	"Connection": "close",
-	"Cookie": ''
+	"Cookie": 'JSESSIONID=947B1521EDF73441E241F0C9FEDD1944; bjui_theme=blue'
 }
 
 import requests, argparse, sys, re
@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 #from urlparse import urlparse
 from bs4 import BeautifulSoup
 import random
+import tld
 urllib3.disable_warnings()
 
 # Regular expression comes from https://github.com/GerbenJavado/LinkFinder
@@ -228,24 +229,25 @@ def giveresult(urls, domian):
 	if urls == None:
 		return None
 	print("\nFind " + str(len(urls)) + " URL:")
+	obj = tld.get_tld(domian, as_object=True)
+	# print(obj.fld)
 	content_url = ""
 	content_subdomain = ""
 	for url in urls:
-		content_url += url + "\n"
-		print(url)
+		if re.search(obj.fld, url, re.I | re.M) is not None:
+			content_url += url + "\n"
+			print(url)
 	subdomains = find_subdomain(urls, domian)
 	print("\nFind " + str(len(subdomains)) + " Subdomain:")
 	for subdomain in subdomains:
 		content_subdomain += subdomain + "\n"
 		print(subdomain)
 
-
 print("JSFinder利用说明: 适用于正常引用JS的网站\n1、获取当前页面script标签src属性的JS,和script标签自定义的JS, 访问这些JS后用正则提取相关链接\n2、提取当前页面link标签的href\n3、修改cookies使其能够在后台运作")
 def check(**kwargs):
 	urls = find_by_url(kwargs['url'])
-	#urls = find_by_url_deep(kwargs['url'],urls)
+	#urls = find_by_url_deep(kwargs['url'], urls)
 	giveresult(urls, kwargs['url'])
-
 
 if __name__ == "__main__":
 	urls = find_by_url('http://www.so50.com/contactus/')

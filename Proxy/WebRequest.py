@@ -1,17 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-   File Name：     WebRequest
-   Description :   Network Requests Class
-   Author :        J_hao
-   date：          2017/7/31
--------------------------------------------------
-   Change Activity:
-                   2017/7/31:
--------------------------------------------------
-"""
-__author__ = 'J_hao'
-
 from requests.models import Response
 from lxml import etree
 import requests
@@ -62,7 +49,7 @@ class WebRequest(object):
                 'Connection': 'keep-alive',
                 'Accept-Language': 'zh-CN,zh;q=0.8'}
 
-    def get(self, url, header=None, retry_time=3, retry_interval=5, timeout=5, *args, **kwargs):
+    def get(self, url, header=None, retry_time=1, retry_interval=5, timeout=5, *args, **kwargs):
         """
         get method
         :param url: target url
@@ -78,6 +65,33 @@ class WebRequest(object):
         while True:
             try:
                 self.response = requests.get(url, headers=headers, timeout=timeout, verify=False, *args, **kwargs)
+                return self
+            except Exception as e:
+                self.log.error("requests: %s error: %s" % (url, str(e)))
+                retry_time -= 1
+                if retry_time <= 0:
+                    resp = Response()
+                    resp.status_code = 200
+                    return self
+                self.log.info("retry %s second after" % retry_interval)
+                time.sleep(retry_interval)
+
+    def post(self, url, header=None, retry_time=1, retry_interval=5, timeout=5, *args, **kwargs):
+        """
+        post method
+        :param url: target url
+        :param header: headers
+        :param retry_time: retry time
+        :param retry_interval: retry interval
+        :param timeout: network timeout
+        :return:
+        """
+        headers = self.header
+        if header and isinstance(header, dict):
+            headers.update(header)
+        while True:
+            try:
+                self.response = requests.post(url, headers=headers, timeout=timeout, verify=False, *args, **kwargs)
                 return self
             except Exception as e:
                 self.log.error("requests: %s error: %s" % (url, str(e)))

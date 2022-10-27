@@ -75,7 +75,7 @@ def switchPro(proxylist):
 def Loadips():
     ip_list = []
     ip = ['ip','port']
-    with open('ips.txt') as ips:
+    with open('ips.json') as ips:
         lines = ips.readlines()
     for line in lines:
         ip[0],ip[1] = line.strip().split(":")

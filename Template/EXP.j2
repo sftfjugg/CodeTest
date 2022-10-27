@@ -1,4 +1,5 @@
 from util.ExpRequest import ExpRequest,Output
+from util.fun import *
 import util.globalvar as GlobalVar
 import prettytable as pt
 """
@@ -17,9 +18,8 @@ class {{service.entry_nodes.vulname}}():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = env.get('timeout')
-        self.retry_time = env.get('retry_time')
-        self.retry_interval = env.get('retry_interval')
+        self.timeout = int(env.get('timeout'))
+        self.flag = GlobalVar.get_value('flag')
             
     def {{service.entry_nodes.cvename}}(self):
         appName = '{{service.entry_nodes.vulname}}'
@@ -32,17 +32,13 @@ class {{service.entry_nodes.vulname}}():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
             if self.vuln == 'False':
                 r = exprequest.{{service.header_nodes.headinfo.method}}(
                     url=self.url+path, 
                     data=data, 
-                    headers=headers, 
-                    retry_time=self.retry_time, 
-                    retry_interval=self.retry_interval,
-                    timeout=self.timeout, 
-                    verify=False
+                    headers=headers,
                     )
                 {{service.entry_nodes.condition}}
                     return output.no_echo_success(method, desc)
@@ -52,11 +48,7 @@ class {{service.entry_nodes.vulname}}():
                 result = exprequest.{{service.header_nodes.headinfo.method}}(
                     url=self.url+path,
                     data=data, 
-                    headers=headers, 
-                    retry_time=self.retry_time, 
-                    retry_interval=self.retry_interval, 
-                    timeout=self.timeout, 
-                    verify=False
+                    headers=headers,
                     ).text
                 print(result)
         except Exception as error:

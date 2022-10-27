@@ -1,13 +1,16 @@
+# -*- coding: utf-8 -*-
 from tkinter import Toplevel,Frame,Menu,Label,ttk,Button,Scrollbar
 from tkinter import HORIZONTAL,END,W
-from settings import variable_dict,Proxy_web
+from settings import variable_dict,Proxy_web,rootPath
 from Proxy.helper.proxy import Proxy as Proxy_cls
 from Proxy.proxyFetcher import ProxyFetcher
 from Proxy.helper.check import DoValidator
 from concurrent.futures import ThreadPoolExecutor
 from itertools import repeat
 from ClassCongregation import seconds2hms,LoadCMD,addToClipboard
+import util.globalvar as GlobalVar
 import threading
+import subprocess
 import socket
 import socks
 import time
@@ -23,11 +26,11 @@ class Proxy_pool():
         self.exchange = self.Proxy.resizable(width=False, height=False)#不允许扩大
         #self.Proxy.wm_attributes('-topmost',1)
         self.Proxy_list = []
-        self.columns = ("proxy", "https", "anonymous")
+        self.columns = ("proxy", "protocol", "anonymous")
 
         self.frmA = Frame(self.Proxy, width=450, height=60, bg="whitesmoke")
-        self.frmB = Frame(self.Proxy, width=450, height=390, bg="white")
-        self.frmC = Frame(self.Proxy, width=450, height=10, bg="white")
+        self.frmB = Frame(self.Proxy, width=450, height=390, bg="whitesmoke")
+        self.frmC = Frame(self.Proxy, width=450, height=10, bg="whitesmoke")
         
         self.frmA.grid(row=0, column=0, padx=3, pady=3)
         self.frmB.grid(row=1, column=0, padx=1, pady=1)
@@ -54,8 +57,21 @@ class Proxy_pool():
         self.LabA = Label(self.frmA, text='来源')#显示
         self.comboxlistA = ttk.Combobox(self.frmA,width=10,textvariable=variable_dict["Proxy_webtitle"],state='readonly') #接受输入控件
         #self.comboxlistA["values"]=("米扑代理","66代理","pzzqz","神鸡代理","快代理","极速代理","云代理","小幻代理","免费代理库","89免费代理","西拉代理")
-        self.comboxlistA["values"]=("米扑代理","快代理","云代理","小幻代理","免费代理库","89免费代理","西拉代理")
-
+        self.comboxlistA["values"]=(
+            "米扑代理",
+            "快代理",
+            "云代理",
+            "小幻代理",
+            "免费代理库",
+            "89免费代理",
+            "西拉代理",
+            "proxy-list",
+            "proxylistplus",
+            "FOFA",
+            "Hunter",
+            "360Quake",
+            "ZoomEye"
+            )
         self.LabA1 = Label(self.frmA, text='页数')#显示
         self.comboxlistA1 = ttk.Combobox(self.frmA,width=3,textvariable=variable_dict["Proxy_page"],state='readonly') #接受输入控件
         self.comboxlistA1["values"]=("1","2","3","4","5","6","7","8","9","10")
@@ -67,17 +83,19 @@ class Proxy_pool():
         self.buttonA = Button(self.frmA, text="获取", width=19, height=2, command=lambda :self.thread_it(self.get_proxy))
 
         self.VScroll1 = Scrollbar(self.frmB, orient='vertical')
-        self.tree = ttk.Treeview(self.frmB, height=20, columns=self.columns, show="headings",yscrollcommand=self.VScroll1.set)
+        self.tree = ttk.Treeview(self.frmB, height=18, columns=self.columns, show="headings",yscrollcommand=self.VScroll1.set)
         self.VScroll1['command'] = self.tree.yview
     
         #self.tree.bind("<ButtonRelease-1>", lambda x: self.rightKey(x, self.gui.menubar_1))#绑定右键鼠标事件
         self.tree.bind("<Button-3>", lambda x: self.treeviewClick(x, self.gui.menubar_1))#绑定右键鼠标事件
+        # 绑定左键双击事件
+        self.tree.bind("<Double-1>", lambda x: self.set_proxy())
         self.tree.heading("proxy", text="IP地址", anchor="w", command=lambda :self.treeview_sort_column(self.tree, 'proxy', False))
-        self.tree.heading("https", text="类型", anchor="center", command=lambda :self.treeview_sort_column(self.tree, 'https', False))
+        self.tree.heading("protocol", text="类型", anchor="center", command=lambda :self.treeview_sort_column(self.tree, 'protocol', False))
         self.tree.heading("anonymous", text="匿名度", anchor="center", command=lambda :self.treeview_sort_column(self.tree, 'anonymous', False))
         # 定义各列列宽及对齐方式
         self.tree.column("proxy", width=220, anchor="w")
-        self.tree.column("https", width=100, anchor="center")
+        self.tree.column("protocol", width=100, anchor="center")
         self.tree.column("anonymous", width=100, anchor="center")
 
 
@@ -147,7 +165,7 @@ class Proxy_pool():
                     self.Proxy_list.append(_dict.get("proxy", ""))
                     self.tree.insert("","end",values=(
                                 _dict.get("proxy", ""),
-                                _dict.get("https", ""),
+                                _dict.get("protocol", ""),
                                 _dict.get("anonymous", "")
                                 )
                             )
@@ -158,6 +176,7 @@ class Proxy_pool():
     def get_proxy(self):
         try:
             p = ProxyFetcher()
+            # 反射调用函数
             result = getattr(p, Proxy_web[variable_dict["Proxy_webtitle"].get()])(variable_dict["Proxy_page"].get())
 
             for i in [_.split("|") for _ in result]:
@@ -187,17 +206,17 @@ class Proxy_pool():
         for selected_item in self.tree.selection():
             self.tree.delete(selected_item)
 
-    #复制选中行到剪切板中1
-    def copy_select(self):
+    # 复制选中行到剪切板中
+    def copy_select(self, event):
         try:
             for item in self.tree.selection():
                 item_text = self.tree.item(item,"values")
-                proxy = item_text[0]#输出所选行的第一列的值
-            addToClipboard(proxy)
-            #命令执行方式会闪屏
-            #command = 'echo | set /p nul=' + text.strip() + '| clip'
-            #os.system(command)
-        except Exception as e:
+                # 列
+                column = self.tree.identify_column(event.x)
+                cn = int(str(column).replace('#',''))
+                target = item_text[cn-1]
+            addToClipboard(target)
+        except Exception:
             pass
 
     #保存当前数据1
@@ -207,11 +226,11 @@ class Proxy_pool():
             f.close()
 
     #获取当前数据1
-    def get_tree(self):
+    def get_tree(self):        
         temp_list = []
         for item in self.tree.get_children():
             item_text = self.tree.item(item,"values")
-            str_to_dict = '{"proxy":"%s", "https":"%s", "anonymous":"%s"}'%(item_text[0], item_text[1], item_text[2])
+            str_to_dict = '{"proxy":"%s", "protocol":"%s", "anonymous":"%s"}'%(item_text[0], item_text[1], item_text[2])
             temp_list.append(json.loads(str_to_dict))
         return temp_list
 
@@ -237,8 +256,9 @@ class Proxy_pool():
             start = time.time()
             flag = round(400/len(temp_list), 2)#每执行一个任务增长的长度
             index = [Proxy_cls(**kwargs) for kwargs in temp_list]
-            executor = ThreadPoolExecutor(max_workers = 10)
-            for data in executor.map(DoValidator.http_or_https, index, repeat(anonymous)):
+            # 30线程
+            executor = ThreadPoolExecutor(max_workers = 30)
+            for data in executor.map(DoValidator.http_or_https_or_socks5_or_socks4, index, repeat(anonymous)):
                 result_list.append(data)#汇聚结果
                 self.p1["value"] = self.p1["value"] + flag#进度条
                 self.gui.root.update()
@@ -247,7 +267,7 @@ class Proxy_pool():
             for proxy in index:
                 if proxy.last_status is not None:
                     self.Proxy_list.append(proxy.proxy)
-                    self.tree.insert("","end",values=(proxy.proxy, proxy.https, proxy.anonymous))
+                    self.tree.insert("","end",values=(proxy.proxy, proxy.protocol, proxy.anonymous))
             end = time.time()
             executor.shutdown()
             print('[*]检查完成!\n[*]当前存活IP: %s 个\n[*]共花费时间: %s 秒'%(len(self.Proxy_list),seconds2hms(end - start)))
@@ -263,32 +283,27 @@ class Proxy_pool():
 
     ##右键鼠标事件
     def treeviewClick(self, event, menubar):
-        try:
-            for item in self.tree.selection():
-                item_text = self.tree.item(item,"values")
-                proxy = item_text[0]
-                #pro = 'HTTPS' if 'HTTPS' in item_text[1] else 'HTTP'
-            ip = proxy.split(':')[0]
-            port = proxy.split(':')[1]
-
             menubar.delete(0,END)
-            menubar.add_command(label='复制',command=self.copy_select)
-            menubar.add_command(label='删除',command=self.del_select)
-            menubar.add_command(label='设置为当前代理', command=lambda:self.set_proxy(ip,port))
+            menubar.add_command(label='复制', command=lambda:self.copy_select(event))
+            menubar.add_command(label='删除', command=lambda:self.del_select)
+            menubar.add_command(label='设置为当前代理', command=self.set_proxy)
+            menubar.add_command(label='开启HTTP代理池mubeng port:8089', command=self.open_proxy)
+            menubar.add_command(label='开启SOCKS代理池rotateproxy port:8899', command=self.open_rotateproxy)
             menubar.add_command(label='根据协议类型检测代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=False))
             #menubar.add_command(label='检测高匿代理存活性', command=lambda :self.thread_it(self.checkProxy, anonymous=True))
             #menubar.add_command(label='检测HTTP代理存活', command=lambda:self.set_proxy(ip,port,pro))
             #menubar.add_command(label='检测HTTPS代理存活', command=lambda:self.set_proxy(ip,port,pro))
             #menubar.add_command(label='开启全局代理连接池', command=lambda :self.thread_it(self.start_proxy))
-
             menubar.post(event.x_root,event.y_root)
-        except Exception as e:
-            pass
-            #messagebox.showinfo(title='提示', message=e)
 
     #设置代理
-    def set_proxy(self, ip, port, pro='HTTP'):
+    def set_proxy(self):
         try:
+            for item in self.tree.selection():
+                item_text = self.tree.item(item,"values")
+                proxy = item_text[0]
+                protocol = item_text[1]
+            ip, port = proxy.split(':')
             #代理初始化清空
             socks.set_default_proxy(None)
             socket.socket = socks.socksocket
@@ -297,21 +312,98 @@ class Proxy_pool():
             #自定义值
             variable_dict["Proxy_CheckVar1"].set(1)
             variable_dict["Proxy_CheckVar2"].set(0)
-            variable_dict["PROXY_TYPE"].set('HTTP/HTTPS')
             variable_dict["Proxy_addr"].set(ip)
             variable_dict["Proxy_port"].set(port)
-            #代理全局
-            os.environ['HTTP_PROXY'] = ip+':'+port
-            os.environ['HTTPS_PROXY'] = ip+':'+port
-            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%('HTTP/HTTPS',ip,port))
-            #now = datetime.datetime.now()
-            #print("["+str(now)[11:19]+"] " + "[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s"%(pro,ip,port))
-            #messagebox.showinfo(title='提示', message='设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%(pro,ip,port))
+            # HTTP/HTTPS 代理
+            if protocol == 'HTTP' or protocol == 'HTTPS':
+                variable_dict["PROXY_TYPE"].set('HTTP/HTTPS')
+                os.environ['HTTP_PROXY'] = ip+':'+port
+                os.environ['HTTPS_PROXY'] = ip+':'+port
+            # SOCKS代理
+            else:
+                if protocol == "SOCKS4":
+                    proxy_type = socks.SOCKS4
+                elif protocol == "SOCKS5":
+                    proxy_type = socks.SOCKS5
+                variable_dict["PROXY_TYPE"].set(protocol)
+                socks.set_default_proxy(proxy_type, ip, int(port))
+                socket.socket = socks.socksocket
+            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%(protocol,ip,port))
         except Exception as e:
             print('[-]设置代理错误: %s'%e)
-            #messagebox.showinfo(title='提示', message=e)
+
+    def open_proxy(self):
+        # 获取代理
+        temp_list = []
+        item_list = self.tree.get_children() if len(self.tree.selection()) == 0 else self.tree.selection()
+        for item in item_list:
+            item_text = self.tree.item(item,"values")
+            if item_text[1] not in ['SOCKS5','SOCKS4','HTTPS','HTTP']:
+                str_to_dict = '%s://%s'%('HTTP', item_text[0])
+            else:
+                str_to_dict = '%s://%s'%(item_text[1], item_text[0])
+            temp_list.append(str_to_dict.lower()+'\n')
+        # 保存代理
+        with open('./Proxy/proxies.txt', mode='w', encoding='utf-8') as f:        
+            f.writelines(temp_list)
+            f.close()
+        try:
+            m = "%s\Proxy\mubeng -a 127.0.0.1:8089 -f %s\Proxy\proxies.txt --check --rotate 1 --timeout 5s --method random"%(rootPath, rootPath)
+            command = 'cmd.exe /k ' + m
+            subprocess.Popen(command, shell=False, creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+            # 代理初始化清空
+            socks.set_default_proxy(None)
+            socket.socket = socks.socksocket
+            os.environ['HTTP_PROXY'] = ''
+            os.environ['HTTPS_PROXY'] = ''
+            # 自定义值
+            variable_dict["Proxy_CheckVar1"].set(1)
+            variable_dict["Proxy_CheckVar2"].set(0)
+            variable_dict["Proxy_addr"].set('127.0.0.1')
+            variable_dict["Proxy_port"].set('8089')
+            variable_dict["PROXY_TYPE"].set('HTTP/HTTPS')
+            # 设置代理
+            os.environ['HTTP_PROXY'] = '127.0.0.1:8089'
+            os.environ['HTTPS_PROXY'] = '127.0.0.1:8089'
+            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%('HTTP/HTTPS','127.0.0.1','8089'))
+        except Exception as e:
+            print(e)
+
+    def open_rotateproxy(self):
+        try:
+            m = "%s\Proxy\\rotateproxy -email %s -token %s -page %s -l %s -region %s"%(
+                rootPath,
+                GlobalVar.get_value('FOFA_EMAIL'),
+                GlobalVar.get_value('FOFA_KEY'),
+                '5',
+                ':8899',
+                '2',
+            )
+            command = 'cmd.exe /k ' + m
+            subprocess.Popen(command, shell=False, creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+            # 代理初始化清空
+            socks.set_default_proxy(None)
+            socket.socket = socks.socksocket
+            os.environ['HTTP_PROXY'] = ''
+            os.environ['HTTPS_PROXY'] = ''
+            # 自定义值
+            variable_dict["Proxy_CheckVar1"].set(1)
+            variable_dict["Proxy_CheckVar2"].set(0)
+            variable_dict["Proxy_addr"].set('127.0.0.1')
+            variable_dict["Proxy_port"].set('8899')
+            variable_dict["PROXY_TYPE"].set('SOCKS5')
+            # 设置代理
+            socks.set_default_proxy(socks.SOCKS5, '127.0.0.1', 8899)
+            # 应用
+            socket.socket = socks.socksocket
+            print('[*]设置代理成功\n[*]当前代理协议: %s\n[*]当前代理的IP: %s:%s'%('SOCKS5','127.0.0.1','8899'))
+        except Exception as e:
+            print(e)
+
     #多线程执行函数
     def thread_it(self, func, **kwargs):
-        self.t = threading.Thread(target=func,kwargs=kwargs,name='执行函数子线程')
-        self.t.setDaemon(True)   # 守护--就算主界面关闭，线程也会留守后台运行（不对!）
+        self.t = threading.Thread(target=func, kwargs=kwargs, name='执行函数子线程')
+        self.t.setDaemon(True)   # 守护
         self.t.start()           # 启动

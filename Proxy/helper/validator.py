@@ -17,7 +17,6 @@ from requests import head,get
 from Proxy.util.six import withMetaclass
 from Proxy.util.singleton import Singleton
 from Proxy.handler.configHandler import ConfigHandler
-import json
 
 conf = ConfigHandler()
 
@@ -32,6 +31,8 @@ class ProxyValidator(withMetaclass(Singleton)):
     http_validator = []
     https_validator = []
     anonymous_validator = []
+    socks5_validator = []
+    socks4_validator = []
 
     @classmethod
     def addPreValidator(cls, func):
@@ -48,6 +49,16 @@ class ProxyValidator(withMetaclass(Singleton)):
         cls.https_validator.append(func)
         return func
     
+    @classmethod
+    def addSocks5Validator(cls, func):
+        cls.socks5_validator.append(func)
+        return func
+    
+    @classmethod
+    def addSocks4Validator(cls, func):
+        cls.socks4_validator.append(func)
+        return func
+
     @classmethod
     def addAnonymousValidator(cls, func):
         cls.anonymous_validator.append(func)
@@ -67,9 +78,8 @@ def httpTimeOutValidator(proxy):
     """ http检测超时 """
 
     proxies = {"http": "http://{proxy}".format(proxy=proxy.proxy), "https": "https://{proxy}".format(proxy=proxy.proxy)}
-
     try:
-        r = head(conf.httpUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout)
+        r = head(conf.httpUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
         #r = get(conf.httpUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout)
         #return True if r.status_code == 200 and ',' not in r.text else False
         return True if r.status_code == 200 else False
@@ -84,6 +94,34 @@ def httpsTimeOutValidator(proxy):
     proxies = {"http": "http://{proxy}".format(proxy=proxy.proxy), "https": "https://{proxy}".format(proxy=proxy.proxy)}
     try:
         r = head(conf.httpsUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
+        #r = get(conf.httpsUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
+        #return True if r.status_code == 200 and ',' not in r.text else False
+        return True if r.status_code == 200 else False
+    except Exception as e:
+        return False
+
+@ProxyValidator.addSocks5Validator
+def socks5TimeOutValidator(proxy):
+    """socks5检测超时"""
+
+    proxy = 'socks5://{}'.format(proxy.proxy)
+    proxies = {"http": proxy, "https": proxy}
+    try:
+        r = head(conf.httpUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
+        #r = get(conf.httpsUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
+        #return True if r.status_code == 200 and ',' not in r.text else False
+        return True if r.status_code == 200 else False
+    except Exception as e:
+        return False
+
+@ProxyValidator.addSocks4Validator
+def socks4TimeOutValidator(proxy):
+    """socks4检测超时"""
+
+    proxy = 'socks4://{}'.format(proxy.proxy)
+    proxies = {"http": proxy, "https": proxy}
+    try:
+        r = head(conf.httpUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
         #r = get(conf.httpsUrl, headers=HEADER, proxies=proxies, timeout=conf.verifyTimeout, verify=False)
         #return True if r.status_code == 200 and ',' not in r.text else False
         return True if r.status_code == 200 else False

@@ -30,16 +30,19 @@ class CodeFile():
         self.file_name = file_name
         self.file = Toplevel(root)
         self.file.title("文本编辑")
-        self.file.geometry('900x500+650+150')
+        self.file.geometry('900x500+1150+150')
         self.file.iconbitmap('python.ico')
         #定位字符
-        self.text = 'def '+text+'(self)'
+        self.text = 'def '+text
         #
         self.colorobj = self._codefilter = None
         #顶级菜单
         self.menubar = Menu(self.file)
         self.menubar.add_command(label = "保 存", accelerator="ctrl + s", command=lambda :self.save_file('1',self.vuln_select))
         self.menubar.add_command(label = "撤 销", accelerator="Ctrl + Z", command=self.move)
+        self.menubar.add_command(label = "Dnslog", command=self.switch_Dnslog)
+        self.menubar.add_command(label = "Ceye", command=self.switch_Ceye)
+        
         self.file.bind("<Control-s>",lambda event:self.save_file('1',self.vuln_select))
 
         #显示菜单
@@ -61,6 +64,18 @@ class CodeFile():
         #渲染颜色
         self.change_mode()
 
+    def switch_Dnslog(self):
+        Loadfile_text = self.TexA.get('0.0','end').strip('\n')
+        self.TexA.delete('1.0','end')
+        Loadfile_text = Loadfile_text.replace('Ceye', 'Dnslog')
+        self.TexA.insert(INSERT, Loadfile_text)
+        
+    def switch_Ceye(self):
+        Loadfile_text = self.TexA.get('0.0','end').strip('\n')
+        self.TexA.delete('1.0','end')
+        Loadfile_text = Loadfile_text.replace('Dnslog', 'Ceye')
+        self.TexA.insert(INSERT, Loadfile_text)
+
     def move(self):
         self.TexA.edit_undo()
 
@@ -78,7 +93,7 @@ class CodeFile():
                 array = f.readlines()
                 for i in array: #遍历array中的每个元素
                     self.TexA.insert(INSERT, i)
-            if self.text and self.text != 'ALL':
+            if self.text and self.text != 'ALL' and self.text != 'def ':
                 idx = '1.0'
                 idx = self.TexA.search(self.text, idx, nocase=1, stopindex=END)
                 if idx:
@@ -166,8 +181,8 @@ class CodeFile():
             return
         save_data = str(self.TexA.get('0.0','end'))
         try:
-            fobj_w = open(self.file_name1, 'w',encoding='utf-8')
-            fobj_w.writelines(save_data)
+            fobj_w = open(self.file_name1, 'w', encoding='utf-8')
+            fobj_w.writelines(save_data.strip('\n'))
             fobj_w.close()
             #self.openRender()
             vuln_select = importlib.reload(vuln_select)
@@ -268,16 +283,4 @@ class CodeFile():
             #原来的内容重新着色以后，光标位置会在文本框最后
             #这一行用来把光标位置移动到指定的位置，也就是正在修改的位置
             self.TexA.mark_set('insert', f'{current_line_num}.{current_col_num}')    
-        """ 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
+        """

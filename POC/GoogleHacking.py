@@ -475,7 +475,7 @@ class UrlFetcher(object):
     @staticmethod
     def HackingUrl_fromGoogle(Rulestr, page_count, timestr):
         """
-        Google https://www.google.com
+        Google https://www.google.com.hk
         :return:
         """
         header_Google = {
@@ -486,7 +486,7 @@ class UrlFetcher(object):
         #页数目录列表
         index = ['1']
         #地址
-        url = 'https://www.google.com/search?q={}&start={}0'
+        url = 'https://www.google.com.hk/search?q={}&start={}0'
         
         while True:
             try:
@@ -564,7 +564,7 @@ class UrlFetcher(object):
 def checkProxy():
     # 查看是否能连通google
     try:
-        requests.get("https://www.google.com",timeout=5,verify=False)
+        requests.get("https://www.google.com.hk",timeout=10,verify=False)
     except Exception:
         return 0
     return 1
@@ -573,20 +573,21 @@ def checkProxy():
 def check(**kwargs):
     timestr = time.strftime("%Y%m%d_%H%M%S")#获取当前时间
     p = UrlFetcher()
-    p.HackingUrl_fromBaidu(kwargs['url'], page_count, timestr)
-    time.sleep(0.5)
-    p.HackingUrl_from360(kwargs['url'], page_count, timestr)
-    time.sleep(0.5)
-    p.HackingUrl_fromBing(kwargs['url'], page_count, timestr)
-    time.sleep(0.5)
+    #p.HackingUrl_fromBaidu(kwargs['url'], page_count, timestr)
+    #time.sleep(0.5)
+    #p.HackingUrl_from360(kwargs['url'], page_count, timestr)
+    #time.sleep(0.5)
+    #p.HackingUrl_fromBing(kwargs['url'], page_count, timestr)
+    #time.sleep(0.5)
     #p.HackingUrl_fromSogou(kwargs['url'], page_count, timestr)
-    time.sleep(0.5)
+    #time.sleep(0.5)
     if checkProxy():
         p.HackingUrl_fromGoogle(kwargs['url'], page_count, timestr)
+        print('[*]爬取完成, 请查看结果文件 %s_%s.xlsx'%('GoogleHacking',timestr))
     else:
         print('[-]连接Google失败, 无法通过Google爬取数据')
     
-    print('[*]爬取完成, 请查看结果文件 %s_%s.xlsx'%('GoogleHacking',timestr))
+    #print('[*]爬取完成, 请查看结果文件 %s_%s.xlsx'%('GoogleHacking',timestr))
 
 if __name__ == '__main__':
     os.environ['HTTP_PROXY'] = '127.0.0.1:8080'
@@ -607,3 +608,13 @@ if __name__ == '__main__':
     p.HackingUrl_fromGoogle(google, page_count, timestr)
     #p.HackingUrl_fromGoogle(google, page_count, timestr)
     print('[*]爬取完成, 请查看结果文件 %s_%s.xlsx'%('GoogleHacking',timestr))
+
+
+
+
+
+
+
+
+
+

@@ -62,8 +62,7 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
         #让终端Text不可编辑
         #self.TerminalText['state']='d'
 
-        sys.stdout = TextRedirector(self.TerminalText, "stdout", index="2")
-        sys.stderr = TextRedirector(self.TerminalText, "stderr", index="2")
+        sys.stdout = TextRedirector(self.TerminalText, "stdout", index="exp")
         self.Terminal.protocol("WM_DELETE_WINDOW", self.callbackClose)
         
     def CmdbackUp(self, entry_cmd_text):
@@ -171,8 +170,7 @@ del input,print,set,Back''',running_space)#先把那些Python基础函数替换�
     #退出时执行的函数
     def callbackClose(self):
         try:
-            sys.stdout = TextRedirector(self.Text_note, "stdout", index="2")
-            sys.stderr = TextRedirector(self.Text_note, "stderr", index="2")
+            sys.stdout = TextRedirector(self.Text_note, "stdout", index="exp")
             self.Terminal.destroy()
         except Exception:
             self.Terminal.destroy()

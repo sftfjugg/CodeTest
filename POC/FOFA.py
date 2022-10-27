@@ -7,7 +7,7 @@ import os
 
 urllib3.disable_warnings()
 
-token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY1MzU1MDgwNCwiaXNzIjoicmVmcmVzaCJ9.LX8-MOmwrHA8uP2h9xACu2pgoy74cYUkVgRUO7z8U1GzV74DNiTZ_3TNFrppn843gRvpdhFm6fOBqX6tsGdbxw'
+token = ''
 
 fofa_token = token
 refresh_token = token
@@ -143,66 +143,3 @@ if __name__ == '__main__':
     #os.environ['HTTPS_PROXY'] = '127.0.0.1:8080'
     pag_num = pag_num_fun('app=\"Landray-OA系统\"')
     fofa('app=\"Landray-OA系统\"', pag_num)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

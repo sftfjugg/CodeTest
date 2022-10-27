@@ -6,7 +6,6 @@ import threading
 import queue
 import sys,getopt
 sys.path.append('../')
-from ClassCongregation import _urlparse
 
 error=20  #误差值（5~10），此参数不用修改,已最优。
 urllib3.disable_warnings()
@@ -34,10 +33,6 @@ def Nginx_iis_scan(url):
 print('[*]请输入目标服务器上存在的静态资源文件链接,如 http://www.baidu.com/robots.txt')
 def check(**kwargs):
     Nginx_iis_scan(kwargs['url'])
-
-if __name__ == "__main__":
-    Nginx_iis_scan(_urlparse("http://baidu.com/123.php"))
-    print('task complete~~~~~~~~~~ 完了')
 
 
 

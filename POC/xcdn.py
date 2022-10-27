@@ -34,6 +34,11 @@ import re
 import subprocess,requests
 from bs4 import BeautifulSoup
 
+token = 'eyJhbGciOiJIUzUxMiIsImtpZCI6Ik5XWTVZakF4TVRkalltSTJNRFZsWXpRM05EWXdaakF3TURVMlkyWTNZemd3TUdRd1pUTmpZUT09IiwidHlwIjoiSldUIn0.eyJpZCI6MzU5NjYsIm1pZCI6MTAwMDI2MDc2LCJ1c2VybmFtZSI6InhreDUxOCIsImV4cCI6MTY0NjMzODk5NywiaXNzIjoicmVmcmVzaCJ9.Aqfrl1A0C-WE_T5ZER2eaylK0SdJfWULS8bbnvqWSjlyFzNubPJjbPCqU9nJdKZwTPPUUXp6WBVw33R_tCVAbg'
+
+fofa_token = token
+refresh_token = token     
+
 class Xcdn(object):
 
     def __init__(self,domain):
@@ -353,14 +358,16 @@ class Xcdn(object):
         print("5)尝试在FOFA上通过title寻找真实IP")
         headers = { 
             #'Connection': 'close',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36',
+            '':'',
         }
+        
         domain_title = "title=\"{}\"".format(self.domain_title)
         domain_title_base64 = base64.b64encode(domain_title.encode()).decode()
         #search_lan = 'https://fofa.so/result?q=title=\"{}\"&qbase64={}'.format(self.domain_title,domain_title_base64).replace('=','%3D')
-        search_lan = 'https://fofa.so/result?q={}&qbase64={}'.format(urllib.parse.quote(self.domain_title),urllib.parse.quote(domain_title_base64))
+        search_lan = 'https://fofa.info/result?q={}&qbase64={}'.format(urllib.parse.quote(self.domain_title),urllib.parse.quote(domain_title_base64))
 
-        rep_test = requests.get(search_lan,timeout=15, verify=False, headers=headers).text
+        rep_test = requests.get(search_lan,timeout=15, verify=False, headers=headers, cookies={'fofa_token':fofa_token,'refresh_token':refresh_token}).text
         #soup = BeautifulSoup(rep_test, 'lxml') #创建 beautifulsoup 对象
         #print(soup.find_all(class_='re-domain'))
         #for ip_domain in soup.find_all(class_='re-domain'):
@@ -526,4 +533,5 @@ if __name__ == '__main__':
     import sys
     #domain=sys.argv[1]
     Xcdn("wygf.yftlc.com")
+
 

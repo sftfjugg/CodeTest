@@ -1,6 +1,6 @@
 # -*- coding:UTF-8 -*-
-from tkinter import LEFT, RIGHT, ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,IntVar,filedialog
-from tkinter import HORIZONTAL,BOTH,INSERT,END,S,W,E,N
+from tkinter import ttk,messagebox,scrolledtext,Toplevel,Tk,Menu,Frame,Button,Label,Entry,Text,Spinbox,Scrollbar,Checkbutton,LabelFrame,IntVar,filedialog
+from tkinter import HORIZONTAL,BOTH,INSERT,END,S,W,E,N,TOP,BOTTOM,X,LEFT,NONE,RIGHT,Y
 from ClassCongregation import ysoserial_payload,Sql_scan,TextRedirector,color,open_html,FrameProgress,seconds2hms,LoadCMD,delText,random_name
 from concurrent.futures import ThreadPoolExecutor
 from requests_toolbelt.utils import dump
@@ -13,10 +13,11 @@ import threading,math,json,base64
 import urllib3
 import inspect
 import ctypes
-
-#去除错误警告
+# 支持TLSv1.0和TLSv1.1
+os.environ['COMPOSE_TLS_VERSION'] = "TLSv1_2"
+# 去除错误警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-#调用api设置成由应用程序缩放
+# 调用api设置成由应用程序缩放
 try:
     # version >= win 8.1
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -32,39 +33,56 @@ except:
     scaleFactor = 125
 #主界面类
 class MyGUI:
-    vuln = None #POC界面当前加载的对象
-    threadList = [] #填充线程列表,创建多个存储POC脚本的界面, 默认为1, 2, 3, 4
-    threadLock = threading.Lock() #线程锁
-    scripts = [] #poc下的脚本文件列表
-    uppers = [] #poc首字母
-    wait_index = 0 #用于wait_running函数
-    Checkbutton_text = '' #选中的checkbutton,代表执行的POC脚本名称
-    var = {} #保存多个checkbutton关联的变量
-    row = 1 #用于生成checkbutton处的定位
-    vul_name = ''#当前脚本名称
-    wb = None#当前结果文件
-    ws = None#excel表格
-    wbswitch = ''#开关
+    # POC界面当前加载的对象
+    vuln = None
+    # 填充线程列表,创建多个存储POC脚本的界面, 默认为1, 2, 3, 4
+    threadList = []
+    # 线程锁
+    threadLock = threading.Lock()
+    # poc下的脚本文件列表
+    scripts = []
+    # poc首字母
+    uppers = []
+    # 用于wait_running函数
+    wait_index = 0
+    # 选中的checkbutton,代表执行的POC脚本名称
+    Checkbutton_text = ''
+    # 保存多个checkbutton关联的变量
+    var = {}
+    # 用于生成checkbutton处的定位
+    row = 1
+    # 当前脚本名称
+    vul_name = ''
+    # 当前结果文件
+    wb = None
+    # excel表格
+    ws = None
+    # 批量结果保存开关
+    wbswitch = ''
+    # 屏幕存储
     screens = []
+    # 对象属性参数字典
     frms = []
-    def __init__(self):#初始化窗体对象
+    # 初始化窗体对象
+    def __init__(self):
         self.root = Tk()
         self.root.tk.call('tk', 'scaling', scaleFactor / 75)
-        #self.root.lift()
         self.root.iconbitmap('python.ico')
-        self.title = self.root.title('POC检测')#设置title
-        #self.size = self.root.geometry('960x650+400+50')#设置窗体大小，960x650是窗体大小，400+50是初始位置
-        self.size = self.root.geometry('1160x750+400+50')#设置窗体大小，960x650是窗体大小，400+50是初始位置
-        self.exchange = self.root.resizable(width=False, height=False)#不允许扩大
+        # 设置title
+        self.title = self.root.title('POC检测')
+        # 设置窗体大小，1160x750是窗体大小，400+50是初始位置
+        self.size = self.root.geometry('1160x750+400+50')
+        # 不允许扩大
+        # self.exchange = self.root.resizable(width=False, height=False)
         self.root.columnconfigure(0, weight=1)
-        #对象属性参数字典
+        # 对象属性参数字典
         self.frms = self.__dict__
-        #创建顶级菜单
+        # 创建顶级菜单
         self.menubar = Menu(self.root)
-        self.menubar_1 = Menu(self.root,tearoff=False)#创建一个菜单
-        #self.root.bind('<Configure>', self.window_resize)
+        # 创建一个菜单
+        self.menubar_1 = Menu(self.root,tearoff=False)
         
-        #顶级菜单添加一个子菜单
+        # 顶级菜单添加一个子菜单
         self.menubar1 = Menu(self.root,tearoff=False)
         self.menubar1.add_command(label = "项目根目录", command=lambda:LoadCMD('/'))
         self.menubar1.add_command(label = "POC目录", command=lambda:LoadCMD('/POC'))
@@ -73,142 +91,152 @@ class MyGUI:
         self.menubar1.add_command(label = "Result目录", command=lambda:LoadCMD('/result'))
         self.menubar1.add_command(label = "Log目录", command=lambda:LoadCMD('/log'))
         self.menubar1.add_command(label = "Payload_html", command=lambda:LoadCMD('/payload_html'))
+        self.menubar1.add_command(label = "字典目录", command=lambda:LoadCMD('/dict'))
         self.menubar.add_cascade(label = "打开文件", menu = self.menubar1)
 
-        #顶级菜单增加一个普通的命令菜单项
-        #self.menubar.add_command(label = "Ysoserial", command=lambda :Ysoserial_ter(gui.root))
+        # 顶级菜单增加一个普通的命令菜单项
         self.menubar.add_command(label = "设置代理", command=lambda : myproxy.show())
         self.menubar.add_command(label = "免费代理池", command=lambda : my_proxy_pool.show())
-        #self.menubar.add_command(label = "TCP数据调试", command=lambda :Data_debug(gui.root))
-        #显示菜单
+        self.menubar.add_command(label = "全局配置文件", command=lambda:thread_it(CodeFile,**{
+            'root': gui.root,
+            'file_name': 'GlobSettings',
+            'Logo': '1',
+            'vuln_select': GlobalVar.get_value('settings_vuln'),
+            'text': '',
+            }))
+        # 显示菜单
         self.root.config(menu = self.menubar)
 
-    #创造幕布
+    # 创造幕布
     def CreateFrm(self):
         self.frmTOP = Frame(self.root, width=1160 , height=35, bg='whitesmoke')
-        self.frmPOC = Frame(self.root, width=1160 , height=700, bg='white')
-        self.frmEXP = Frame(self.root, width=1160 , height=700, bg='white')
-        self.frmCheck = Frame(self.root, width=1160 , height=700, bg='white')
-        self.frmNote = Frame(self.root, width=1160 , height=700, bg='white')
-        self.frmDb = Frame(self.root, width=1160 , height=700, bg='white')
-
+        self.frmPOC = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmSpace = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmEXP = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmCheck = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmNote = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmDb = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmDebug = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmTerlog = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmtools = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        self.frmthread = Frame(self.root, width=1160 , height=700, bg='whitesmoke')
+        
+        # 界面列表
         MyGUI.screens.append(self.frmPOC)
+        MyGUI.screens.append(self.frmSpace)
         MyGUI.screens.append(self.frmEXP)
         MyGUI.screens.append(self.frmCheck)
         MyGUI.screens.append(self.frmNote)
         MyGUI.screens.append(self.frmDb)
+        MyGUI.screens.append(self.frmDebug)
+        MyGUI.screens.append(self.frmTerlog)
+        MyGUI.screens.append(self.frmtools)
+        MyGUI.screens.append(self.frmthread)
 
-        self.frmTOP.grid(row=0, column=0, padx=2, pady=2)
-        self.frmPOC.grid(row=1, column=0, padx=2, pady=2)
+        # 界面初始化
+        self.frmTOP.pack(side=TOP, expand=0, fill=X)
+        self.frmPOC.pack(side=BOTTOM, expand=1, fill=BOTH)
 
-        #创建按钮
+        # 创建按钮
         self.frmTOPButton1 = Button(self.frmTOP, text='信息收集', width = 10, command=lambda :switchscreen(self.frmPOC))
-        self.frmTOPButton2 = Button(self.frmTOP, text='漏洞扫描', width = 10, command=lambda :switchscreen(self.frmEXP))
-        self.frmTOPButton3 = Button(self.frmTOP, text='漏洞测试', width = 10, command=lambda :switchscreen(self.frmCheck))
-        self.frmTOPButton4 = Button(self.frmTOP, text='漏洞笔记', width = 10, command=lambda :switchscreen(self.frmNote))
+        self.frmTOPButton2 = Button(self.frmTOP, text='资产空间', width = 10, command=lambda :switchscreen(self.frmSpace))
+        self.frmTOPButton3 = Button(self.frmTOP, text='漏洞扫描', width = 10, command=lambda :switchscreen(self.frmEXP))
+        self.frmTOPButton4 = Button(self.frmTOP, text='漏洞测试', width = 10, command=lambda :switchscreen(self.frmCheck))
         self.frmTOPButton5 = Button(self.frmTOP, text='漏洞仓库', width = 10, command=lambda :switchscreen(self.frmDb))
-        #self.frmTOPButton4 = Button(self.frmTOP, text='漏洞笔记', width = 10, command=shownote)
-        #self.frmTOPButton5 = Button(self.frmTOP, text='数据调试', width = 10, command=data_debug)
-        self.frmTOPButton1.grid(row=0,column=0,padx=1, pady=1)
-        self.frmTOPButton2.grid(row=0,column=2,padx=1, pady=1)
-        self.frmTOPButton3.grid(row=0,column=3,padx=1, pady=1)
-        self.frmTOPButton4.grid(row=0,column=5,padx=1, pady=1)
-        self.frmTOPButton5.grid(row=0,column=4,padx=1, pady=1)
-        
-        self.frmTOP.grid_propagate(0)
-        self.frmPOC.grid_propagate(0)
-        self.frmEXP.grid_propagate(0)
-        self.frmCheck.grid_propagate(0)
-        self.frmDb.grid_propagate(0)
-        #self.frmDebug.grid_propagate(0)
+        #self.frmTOPButton6 = Button(self.frmTOP, text='漏洞工具', width = 10, command=lambda :switchscreen(self.frmtools))
+        self.frmTOPButton7 = Button(self.frmTOP, text='威胁分析', width = 10, command=lambda :switchscreen(self.frmthread))
+        self.frmTOPButton8 = Button(self.frmTOP, text='漏洞笔记', width = 10, command=lambda :switchscreen(self.frmNote))
+        self.frmTOPButton9 = Button(self.frmTOP, text='异常日志', width = 10, command=lambda :switchscreen(self.frmDebug))
 
-        #定义frame
-        self.frmA = Frame(self.frmPOC, width=860, height=40,bg='white')#目标，输入框
-        self.frmB = Frame(self.frmPOC, width=860, height=580, bg='white')#输出信息
-        self.frmC = Frame(self.frmPOC, width=860, height=40, bg='white')#功能按钮
-        #self.frmD = Frame(self.root, width=250, height=520)#POC
-        #创建帆布
-        #self.canvas = Canvas(self.frmPOC,width=300,height=590,scrollregion=(0,0,550,550)) #创建canvas
-        #在帆布上创建frmD
-        self.frmE = Frame(self.frmPOC, width=300, height=40,bg='white')
-        
-        self.frmD = Frame(self.frmPOC,width=300,height=580,bg='white')
-        #创建多个frm, 方便切换存储POC
-        #self.frms['frmD_'+str(1)] = Frame(self.frmPOC,width=300,height=580,bg='whitesmoke')
-        #self.frms['frmD_'+str(2)] = Frame(self.frmPOC,width=300,height=580,bg='whitesmoke')
-        #self.frms['frmD_'+str(3)] = Frame(self.frmPOC,width=300,height=580,bg='whitesmoke')
-        #self.frms['frmD_'+str(4)] = Frame(self.frmPOC,width=300,height=580,bg='whitesmoke')
-        #for i in range(1,5):
-            #self.frms['frmD_'+str(i)].grid(row=1, column=1, padx=2, pady=2)
-        #    self.frms['frmD_'+str(i)].grid_propagate(0)
+        # 一、pack布局
+        # side=LEFT（靠左对齐）
+        # expand=1（允许扩大）
+        # fill=BOTH（窗体占满整个窗口剩余的空间）
+        # self.frmTOPButton1.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton2.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton3.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton4.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton5.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton6.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton7.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton8.pack(side=LEFT, expand=1, fill=BOTH)
+        # self.frmTOPButton9.pack(side=LEFT, expand=1, fill=BOTH)
 
-        #self.canvas.create_window((0,0), window=self.frmD)#create_window
-        self.frmF = Frame(self.frmPOC, width=300, height=40,bg='white')
-        #表格布局
-        self.frmA.grid(row=0, column=0, padx=2, pady=2)
-        self.frmB.grid(row=1, column=0, padx=2, pady=2)
-        self.frmC.grid(row=2, column=0, padx=2, pady=2)
-        #self.canvas.grid(row=1, column=1, rowspan=3, padx=2, pady=2)
-        self.frmE.grid(row=0, column=1, padx=2, pady=2)
-        #self.frmD_1.grid(row=1, column=1, padx=2, pady=2)
-        self.frmD.grid(row=1, column=1, padx=2, pady=2)
-        self.frmF.grid(row=2, column=1, padx=2, pady=2)
-        #固定大小
-        self.frmA.grid_propagate(0)
-        self.frmB.grid_propagate(0)
-        self.frmC.grid_propagate(0)
-        self.frmD.grid_propagate(0)
-        self.frmE.grid_propagate(0)
-        self.frmF.grid_propagate(0)
-        #self.canvas.grid_propagate(0)
-        
+        # 二、grid布局
+        self.frmTOPButton1.grid(row=0, column=0, padx=1, pady=1)
+        self.frmTOPButton2.grid(row=0, column=1, padx=1, pady=1)
+        self.frmTOPButton3.grid(row=0, column=2, padx=1, pady=1)
+        self.frmTOPButton4.grid(row=0, column=3, padx=1, pady=1)
+        self.frmTOPButton5.grid(row=0, column=4, padx=1, pady=1)
+        #self.frmTOPButton6.grid(row=0, column=5, padx=1, pady=1)
+        self.frmTOPButton7.grid(row=0, column=6, padx=1, pady=1)
+        self.frmTOPButton8.grid(row=0, column=7, padx=1, pady=1)
+        self.frmTOPButton9.grid(row=0, column=8, padx=1, pady=1)
 
-    #创造第一象限
+        # 定义frame
+        # 此处 height 可控制按钮高度
+        self.frmPOC_A = Frame(self.frmPOC, width=860, height=680, bg='whitesmoke')
+        self.frmPOC_B = Frame(self.frmPOC, width=300, height=680, bg='whitesmoke')
+        # pack定位
+        self.frmPOC_A.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frmPOC_B.pack(side=RIGHT, expand=0, fill=Y)
+        
+        self.frmA = Frame(self.frmPOC_A, width=860, height=20,bg='white')
+        self.frmB = Frame(self.frmPOC_A, width=860, height=580, bg='whitesmoke')
+        self.frmC = Frame(self.frmPOC_A, width=860, height=40, bg='whitesmoke')
+        self.frmE = Frame(self.frmPOC_B, width=300, height=40, bg='white')
+        self.frmD = Frame(self.frmPOC_B, width=300, height=580, bg='whitesmoke')
+        self.frmF = Frame(self.frmPOC_B, width=300, height=40, bg='white')
+        
+        self.frmA.pack(side=TOP, expand=0, fill=X)
+        self.frmB.pack(side=TOP, expand=1, fill=BOTH)
+        self.frmC.pack(side=TOP, expand=0, fill=X)
+        
+        # expand=0, fill=X 窗体不允许扩大,在X轴方向上填充
+        self.frmE.pack(side=TOP, expand=0, fill=X)
+        self.frmD.pack(side=TOP, expand=1, fill=BOTH)
+        self.frmF.pack(side=TOP, expand=0, fill=X)
+        
+    # 创造第一象限
     def CreateFirst(self):
-        self.LabA = Label(self.frmA, text='目标')#显示
-        self.EntA = Entry(self.frmA, width='55',highlightcolor='red', highlightthickness=1,font=("consolas",10)) #接受输入控件
-
-        self.LabA2 = Label(self.frmA, text='运行状态')#显示
-        #self.EntA2 = Entry(self.frmA, width='7',highlightcolor='red', highlightthickness=1,font=("consolas",10)) #接受输入控件
+        # 目标框
+        self.LabA = Label(self.frmA, text='目标')
+        self.EntA = Entry(self.frmA, width='55', highlightcolor='red', highlightthickness=1, font=("consolas", 10))
+        # 运行状态框
+        self.LabA2 = Label(self.frmA, text='运行状态')
         self.TexA2 = Text(self.frmA, font=("consolas",10), width=2, height=1)
+        # 批量导入文件
+        self.ButtonA = Button(self.frmA, text='......', width=5, command=lambda :myurls.show())
+        # 线程池数量
+        self.LabA3 = Label(self.frmA, text='线程(默认10)')
+        self.b1 = Spinbox(self.frmA, from_=1, to=10, wrap=True, width=3, font=("consolas",10), textvariable=Ent_A_Top_thread)
 
-        self.ButtonA = Button(self.frmA, text='......', width=5, command=lambda :myurls.show()) #批量导入文件
+        # pack布局
+        self.LabA.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntA.pack(side=LEFT, expand=1, fill=X)
+        self.LabA2.pack(side=LEFT, expand=0, fill=NONE)
+        self.TexA2.pack(side=LEFT, expand=0, fill=NONE)
+        self.ButtonA.pack(side=LEFT, expand=0, fill=NONE)
+        self.LabA3.pack(side=LEFT, expand=0, fill=NONE)
+        self.b1.pack(side=LEFT, expand=0, fill=NONE)
 
-        #线程池数量
-        self.LabA3 = Label(self.frmA, text='线程(1~10)')
-        self.b1 = Spinbox(self.frmA,from_=1,to=10,wrap=True,width=3,font=("consolas",10),textvariable=Ent_A_Top_thread)
-
-        #表格布局
-        self.LabA.grid(row=0,column=0,padx=2, pady=2)
-        self.EntA.grid(row=0,column=1,padx=2, pady=2)
-
-        self.LabA2.grid(row=0,column=2,padx=2, pady=2)
-        self.TexA2.grid(row=0,column=3,padx=2, pady=2)
-
-        self.ButtonA.grid(row=0,column=4,padx=2, pady=2)
-
-        self.LabA3.grid(row=0,column=5,padx=2, pady=2)
-        self.b1.grid(row=0,column=6,padx=2, pady=2)
-        #self.LabA3.grid(row=1,column=0)
-        #self.EntA3.grid(row=1,column=1)
+        # grid布局
+        # self.LabA.grid(row=0, column=0, padx=2, pady=2)
+        # self.EntA.grid(row=0, column=1, padx=2, pady=2)
+        # self.LabA2.grid(row=0, column=2, padx=2, pady=2)
+        # self.TexA2.grid(row=0, column=3, padx=2, pady=2)
+        # self.ButtonA.grid(row=0, column=4, padx=2, pady=2)
+        # self.LabA3.grid(row=0, column=5, padx=2, pady=2)
+        # self.b1.grid(row=0, column=6, padx=2, pady=2)
+        # 锁定屏幕,不允许写入
         self.TexA2.configure(state="disabled")
-        #self.ButtonA1.grid(row=1,column=2,padx=4, pady=4)Times
-    #创造第二象限
-    def CreateSecond(self):
-        self.TexB = Text(self.frmB, font=("consolas",9), width=104, height=31)
-        self.ScrB = Scrollbar(self.frmB)  #滚动条控件
-        #进度条控件
-        #self.p1B = Label(self.frmB, text='进度条:')#显示
 
-        self.p1 = ttk.Progressbar(self.frmB, length=840, mode="determinate",maximum=705,orient=HORIZONTAL)
-        #表格布局
-        self.TexB.grid(row=1,column=0)
-        self.ScrB.grid(row=1,column=1, sticky=S + W + E + N)#允许拖动
-        self.ScrB.config(command=self.TexB.yview)
-        self.TexB.config(yscrollcommand=self.ScrB.set)
-        #进度条布局
-        #self.p1B.grid(row=2,column=1)
-        self.p1.grid(row=2,column=0,sticky=W)
+    # 创造第二象限
+    def CreateSecond(self):
+        self.TexB = scrolledtext.ScrolledText(self.frmB, font=("consolas",9), width=104, height=31)
+        self.TexB.pack(side=TOP, expand=1, fill=BOTH)
+        self.frame_progress = FrameProgress(self.frmB, height=10, maximum=1000)
+        self.frame_progress.pack(side=BOTTOM, expand=0, fill=X)
 
     #创造第三象限
     def CreateThird(self):
@@ -218,26 +246,20 @@ class MyGUI:
             'pool' : int(Ent_A_Top_thread.get())
             }
         ))
-        self.ButtonC2 = Button(self.frmC, text='终 止', width = 10, command=lambda : self.stop_thread())
+        self.ButtonC2 = Button(self.frmC, text='终 止', width = 10, command=lambda:self.thread_it(self.stop_thread))
         self.ButtonC3 = Button(self.frmC, text='清空信息', width = 15, command=lambda : delText(gui.TexB))
         self.ButtonC4 = Button(self.frmC, text='重新载入当前POC', width = 15, command=ReLoad)
         self.ButtonC5 = Button(self.frmC, text='当前进程运行状态', width = 15, command=ShowPython)
         self.ButtonC6 = Button(self.frmC, text='保存批量检测结果', width = 15, command=save_result)
-        #self.LabCA    = Label(self.frmC, text='当前运行状态')
-        #self.TexCA    = Text(self.frmC, font=("consolas",10), width=2, height=1)
-
-        #self.TexCA.tag_add("here", "1.0","end")
-        #self.TexCA.tag_config("here", background="blue")
-        #self.TexCA.configure(state="disabled")
-        #表格布局
+        
+        # 表格布局
         self.ButtonC1.grid(row=0, column=0,padx=2, pady=2)
         self.ButtonC2.grid(row=0, column=1,padx=2, pady=2)
         self.ButtonC3.grid(row=0, column=2,padx=2, pady=2)
         self.ButtonC4.grid(row=0, column=3,padx=2, pady=2)
         self.ButtonC5.grid(row=0, column=4,padx=2, pady=2)
         self.ButtonC6.grid(row=0, column=5,padx=2, pady=2)
-        #self.LabCA.grid(row=0, column=5,padx=2, pady=2)
-        #self.TexCA.grid(row=0, column=6,padx=2, pady=2)
+
     #创造第四象限
     def CreateFourth(self):
         self.ButtonE1 = Button(self.frmE, text='加载POC', width = 8, command=self.LoadPoc)
@@ -249,63 +271,57 @@ class MyGUI:
             'text':'',
             }))
         self.ButtonE3 = Button(self.frmE, text='打开脚本目录', width = 10, command=lambda:LoadCMD('/POC'))
-
-        self.ButtonE1.grid(row=0, column=0,padx=2, pady=2)
-        self.ButtonE2.grid(row=0, column=1,padx=2, pady=2)
-        self.ButtonE3.grid(row=0, column=2,padx=2, pady=2)
+        self.ButtonE1.grid(row=0, column=0, padx=2, pady=2)
+        self.ButtonE2.grid(row=0, column=1, padx=2, pady=2)
+        self.ButtonE3.grid(row=0, column=2, padx=2, pady=2)
 
     def CreateFivth(self):
-        self.note1 = ttk.Notebook(self.frmD, width=300,height=580, style='my.TNotebook') # 1 创建Notebook组件
-
+        # 创建Notebook组件
+        self.note1 = ttk.Notebook(self.frmD, width=300,height=580, style='my.TNotebook')
         self.ButtonF1 = Button(self.frmF, text='<-', width = 15, command=lambda:self.switch_frm('<-'))
         self.ButtonF2 = Button(self.frmF, text='->', width = 15, command=lambda:self.switch_frm('->'))
-        
-        self.ButtonF1.grid(row=0, column=0)
-        self.ButtonF2.grid(row=0, column=1)
+        self.ButtonF1.pack(side=LEFT, expand=1, fill=BOTH)
+        self.ButtonF2.pack(side=RIGHT, expand=1, fill=BOTH)
 
-    #切换界面
+    # 切换界面
     def switch_frm(self, str):
         ilist = []
         jdcit = {}
         index = self.note1.index('current')
         text = self.note1.tab(index)['text']
-
         tabs_list = self.note1.tabs()
         for i in tabs_list:
             if self.note1.tab(i)['text'] == text:
-                #下标
+                # 下标
                 ilist.append(self.note1.index(i))
-                #self.note1.index(i)
+                # self.note1.index(i)
                 jdcit.update({self.note1.index(i):i})
-        
-        #定位
+        # 定位
         pos = ilist.index(index)
-        
         if str == '<-':
             if pos == 0:
                 return
             else:
-                #隐藏当前界面
+                # 隐藏当前界面
                 self.note1.hide(self.note1.index('current'))
-                #显示界面
+                # 显示界面
                 self.note1.add(jdcit[ilist[pos-1]])
-                #选择指定的选项卡
+                # 选择指定的选项卡
                 self.note1.select(jdcit[ilist[pos-1]])
-            
         elif str == '->':
             if pos == len(ilist) - 1:
                 return
             else:
-                #隐藏当前界面
+                # 隐藏当前界面
                 self.note1.hide(self.note1.index('current'))
-                #显示界面
+                # 显示界面
                 self.note1.add(jdcit[ilist[pos+1]])
-                #选择指定的选项卡
+                # 选择指定的选项卡
                 self.note1.select(jdcit[ilist[pos+1]])
                 
-    #加载POC
+    # 加载POC
     def LoadPoc(self):
-        #清空存储
+        # 清空存储
         self.note1.destroy()
         MyGUI.uppers.clear()
         MyGUI.scripts.clear()
@@ -313,53 +329,56 @@ class MyGUI:
         for frm in MyGUI.frms:
             self.frms[frm] = None
         MyGUI.frms.clear()
-        
         style1 = ttk.Style()
-        style1.configure('my.TNotebook', tabposition='wn') # 'se'再改nw,ne,sw,se,w,e,wn,ws,en,es,n,s试试
-        self.note1 = ttk.Notebook(self.frmD, width=300,height=580, style='my.TNotebook') # 1 创建Notebook组件
-        self.note1.grid(row=0, column=0)
+        # 'se'再改nw,ne,sw,se,w,e,wn,ws,en,es,n,s试试
+        style1.configure('my.TNotebook', tabposition='wn')
+        # 创建Notebook组件
+        self.note1 = ttk.Notebook(self.frmD, width=300,height=580, style='my.TNotebook')
+        self.note1.pack(expand=1, fill=BOTH)
         try:
             for _ in glob.glob('POC/*.py'):
                 script_name = os.path.basename(_).replace('.py', '')
-                if script_name == '__init__':
+                if script_name in ['__init__','GlobSettings']:
                     continue
                 i = script_name[0].upper()
                 if i not in MyGUI.uppers:
                     MyGUI.uppers.append(i)
                 MyGUI.scripts.append(script_name)
                 m = IntVar()
-                #MyGUI.var.append(m)
                 MyGUI.var.update({script_name:m})
-            #去重
+            # 去重
             MyGUI.uppers = list(set(MyGUI.uppers))
-            #排序
+            # 排序
             MyGUI.uppers.sort()
             self.CreateThread()
         except Exception as e:
             messagebox.showinfo('提示','请勿重复加载')
             
-    #填充线程列表,创建多个存储POC脚本的界面
+    # 填充线程列表,创建多个存储POC脚本的界面
     def CreateThread(self):
-        #temp_list = []
         for i in MyGUI.uppers:
             index = 1
             for script_name in MyGUI.scripts:
                 if script_name.upper().startswith(i):
                     if self.frms.get('frmD_'+i+'_'+str(math.ceil(index/18)), None) is None:
                         MyGUI.frms.append('frmD_'+i+'_'+str(math.ceil(index/18)))
+                        # self.frmD width=300, height=580
                         self.frms['frmD_'+i+'_'+str(math.ceil(index/18))] = Frame(self.frmD, width=290, height=580, bg='whitesmoke')
-                        self.note1.add(self.frms['frmD_'+i+'_'+str(math.ceil(index/18))], text=i) #装入框架到选项卡
+                        # 装入框架到选项卡
+                        self.note1.add(self.frms['frmD_'+i+'_'+str(math.ceil(index/18))], text=i)
                     self.Create(self.frms['frmD_'+i+'_'+str(math.ceil(index/18))],script_name,index)
                     index += 1
-            #只显示一个界面
+            # 只显示一个界面
             if index > 18:
-                self.note1.hide(self.frms['frmD_'+i+'_'+str(math.ceil(index/18))]) #装入框架到选项卡
-    #创建POC脚本选择Checkbutton
+                # 装入框架到选项卡
+                self.note1.hide(self.frms['frmD_'+i+'_'+str(math.ceil(index/18))])
+
+    # 创建POC脚本选择Checkbutton
     def Create(self, frm, x, i):
-        button = Checkbutton(frm,text=x,variable=MyGUI.var[x],command=lambda:self.callCheckbutton(x))
+        button = Checkbutton(frm,text=x, variable=MyGUI.var[x], command=lambda:self.callCheckbutton(x))
         button.grid(row=i, sticky=W)
 
-    #调用checkbutton按钮
+    # 调用checkbutton按钮
     def callCheckbutton(self, x):
         if MyGUI.var[x].get() == 1:
             try:
@@ -375,51 +394,44 @@ class MyGUI:
             MyGUI.vuln = None
             print('[*] %s 模块已取消!'%x)
 
-
+    # 多线程函数
     def thread_it(self, func, **kwargs):
         self.t = threading.Thread(target=func,kwargs=kwargs)
-        #守护--就算主界面关闭，线程也会留守后台运行（不对!）
+        # 守护
         self.t.setDaemon(True)
-        #启动
+        # 启动
         self.t.start()
 
+    # 停止线程
     def stop_thread(self):
         try:
             _async_raise(self.t.ident, SystemExit)
-            #self.wait_running_job.stop()
             print("[*]已停止运行")
         except Exception as e:
-            messagebox.showinfo('提示','没有正在运行的进程!')
+            messagebox.showinfo('错误',str(e))
         finally:
             gui.TexA2.delete('1.0','end')
             gui.TexA2.configure(state="disabled")
 
+    # 验证功能
     def BugTest(self,**kwargs):
-        #kwargs = {url,port,file_list,pool}
-        #url:str
-        #port:str
-        #file_list:str
-        #pool:str
+        # 未选中模块
         if MyGUI.vuln == None:
             messagebox.showinfo(title='提示', message='还未选择模块')
             return
-
-        MyGUI.vul_name = MyGUI.vuln.__name__.replace('POC.','')
-        #进度条初始化
-        gui.p1["value"] = 0
-        gui.root.update()
-
+        MyGUI.vul_name = MyGUI.vuln.__name__.replace('POC.', '')
+        # 进度条初始化
+        self.frame_progress.pBar["value"] = 0
+        self.root.update()
+        # 是否需要保存结果
         MyGUI.wbswitch = 'false'
         start = time.time()
-        color(Separator_(MyGUI.vul_name),'blue')
-        #now = datetime.datetime.now()
-        #print("["+str(now)[11:19]+"] " + "[*] 开始执行测试")
-        print("[*]开始执行测试")
-
+        color('[*]开始执行模块 %s'%MyGUI.vul_name,'blue')
+        # 进入单模块测试功能
         if kwargs['url']:
-            #进入单模块测试功能
             try:
-                self.t2 = threading.Thread(target=wait_running,name='运行状态子线程',daemon=True)
+                # 运行状态子线程
+                self.t2 = threading.Thread(target=wait_running, name='运行状态子线程', daemon=True)
                 self.t2.start()
                 MyGUI.vuln.check(**kwargs)
             except Exception as e:
@@ -429,73 +441,65 @@ class MyGUI:
                 gui.TexA2.delete('1.0','end')
                 gui.TexA2.configure(state="disabled")
             end = time.time()
-            #now = datetime.datetime.now()
-            #print("["+str(now)[11:19]+"] " + "[*] 共花费时间：{} 秒".format(seconds2hms(end - start)))
             print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
-            #print(MyGUI.vuln.__name__)
-        #进入多目标测试功能
-        elif myurls.TexA.get('0.0','end').strip('\n'):
-            #去空处理
+        # 进入多目标测试功能
+        elif myurls.TexA.get('0.0', 'end').strip('\n'):
+            # 去空处理
             file_list = [i for i in myurls.TexA.get('0.0','end').split("\n") if i!='']
             file_len = len(file_list)
-            #每执行一个任务增长的长度
-            flag = round(705/file_len, 2)
-
+            # 每执行一个任务增长的长度
+            flag = round(1000/file_len, 2)
             executor = ThreadPoolExecutor(max_workers = int(kwargs['pool']))
-            #存储目标列表
+            # 存储目标列表
             url_list = []
-            #存储结果列表
+            # 存储结果列表
             result_list = []
-
             for url in file_list:
                 args = {'url':url}
                 url_list.append(args)
-
             try:
                 for data in executor.map(lambda kwargs: MyGUI.vuln.check(**kwargs), url_list):
-                    #如果结果是列表,去重一次
+                    # 如果结果是列表,去重一次
                     if type(data) == list:
                         data = list(set(data))
-                    #汇聚结果
+                    # 汇聚结果
                     result_list.append(data)
-                    MyGUI.threadLock.acquire()
-                    #进度条
-                    gui.p1["value"] = gui.p1["value"]+flag
-                    gui.root.update()
-                    MyGUI.threadLock.release()
-                #根据结果生成表格
+                    # 进度条
+                    self.frame_progress.pBar["value"] += flag
+                    self.root.update()
+                # 根据结果生成表格
                 index_list = [i+1 for i in range(len(url_list))]
-                #合并列表
+                # 合并列表
                 print_result = zip(index_list, file_list, result_list)
                 tb = pt.PrettyTable()
                 tb.field_names = ["Index", "URL", "Result"]
                 tb.align['URL'] = 'l'
                 tb.align['Result'] = 'l'
-                #保存结果
+                # 保存结果
                 MyGUI.wbswitch = 'true'
-                #构造初始环境
-                #当前结果文件
+                # 构造初始环境
+                # 当前结果文件
                 MyGUI.wb = Workbook()
-                #excel表格
+                # excel表格
                 MyGUI.ws = MyGUI.wb.active
                 MyGUI.ws.append(['Index','URL', 'Result'])
                 index = 1
-                #输出结果
+                # 输出结果
                 for i in print_result:
                     MyGUI.ws.append(i)
                     tb.add_row(i)
                     index += 1
                 print(tb)
-                #关闭线程池
+                # 关闭线程池
                 executor.shutdown()
             except Exception as e:
                 print('执行脚本出现错误: %s ,建议在脚本加上异常处理!'%type(e))
-                gui.p1["value"] = 705
-                gui.root.update()
+                self.frame_progress.pBar["value"] = 1000
+                self.root.update()
             finally:
                 end = time.time()
                 print('[*]共花费时间：{} 秒'.format(seconds2hms(end - start)))
-        #没有输入测试目标
+        # 没有输入测试目标
         else:
             color('[*]请输入目标URL!','red')
             color('[*]请输入目标URL!','yellow')
@@ -505,7 +509,7 @@ class MyGUI:
             color('[*]请输入目标URL!','pink')
             color('[*]请输入目标URL!','cyan')
 
-    #开始循环
+    # 开始循环
     def start(self):
         self.CreateFrm()
         self.CreateFirst()
@@ -513,10 +517,6 @@ class MyGUI:
         self.CreateThird()
         self.CreateFourth()
         self.CreateFivth()
-        ###EXP界面组件创建
-        #exp = MyEXP(self.root,self.frmEXP)
-        #exp.start()
-        ###EXP界面组件创建
         
 class Ysoserial_ter():
     ysotype_list = ['-jar','-cp']
@@ -532,7 +532,7 @@ class Ysoserial_ter():
         self.yso = Toplevel(root)
         self.yso.title("ysoserial代码生成")
         self.yso.geometry('950x600+650+150')
-        self.exchange = self.yso.resizable(width=False, height=False)#不允许扩大
+        # self.exchange = self.yso.resizable(width=False, height=False)#不允许扩大
 
         
         self.frmA = Frame(self.yso, width=945, height=90,bg="white")
@@ -607,15 +607,11 @@ class Ysoserial_ter():
         else:
             Ent_yso_Top_cmd.set('whoami')
         
-
     def Exploit(self):
         java_type = Ent_yso_Top_type.get()
         java_class = Ent_yso_Top_class.get()
         java_cmd = Ent_yso_Top_cmd.get().strip('\n')
         
-        #if java_cmd.startswith('aced'):
-        #    java_cmd = binascii.a2b_hex(java_cmd)
-
         try:
             Ysoserial_ter.java_payload = ysoserial_payload(java_type=java_type,java_class=java_class,java_cmd=java_cmd)
             self.TexB_A.delete('1.0','end')
@@ -659,6 +655,7 @@ class Ysoserial_ter():
                 messagebox.showinfo(title='提示', message='保存成功')
             except Exception as e:
                 messagebox.showinfo(title='错误!', message=str(e))
+
 
 class Data_debug():
     def __init__(self, root):
@@ -830,92 +827,79 @@ class Data_debug():
         #self.close()
         self.Debug.destroy()
 
-#漏洞利用界面类
+# 漏洞利用界面类
 class MyEXP:
-    thread = None
-    pool = None
     def __init__(self, gui):
         self.frmEXP = gui.frmEXP
         self.root = gui.root
-        # self.thread = thread
-        #创建一个菜单
+        # 创建一个菜单
         self.menubar = Menu(self.root, tearoff=False)
 
     def CreateFrm(self):
-        self.frmTOP = Frame(self.frmEXP, width=1160, height=120,bg='white')
-        self.frmBOT = Frame(self.frmEXP, width=1160, height=580,bg='white')
-
-        self.frmTOP.grid(row=0, column=0, padx=1, pady=1)
-        self.frmBOT.grid(row=1, column=0, padx=1, pady=1)
-        self.frmTOP.grid_propagate(0)
-        self.frmBOT.grid_propagate(0)
-
-        self.frmA = Frame(self.frmTOP, width=670, height=120,bg='white')#目标，输入框
-        self.frmB = Frame(self.frmTOP, width=490, height=120, bg='white')#输出信息
-        #self.frmC = Frame(self.frmTOP, width=960, height=380, bg='black')#输出信息
-        
-        #表格布局
-        self.frmA.grid(row=0, column=0, padx=2, pady=2)
-        self.frmB.grid(row=0, column=1, padx=2, pady=2)
-        #self.frmC.grid(row=1, column=0, padx=2, pady=2)
-
-        #固定大小
-        self.frmA.grid_propagate(0)
-        self.frmB.grid_propagate(0)
-        #self.frmC.grid_propagate(0)
+        self.frmTOP = Frame(self.frmEXP, width=1160, height=130, bg='whitesmoke')
+        self.frmBOT = Frame(self.frmEXP, width=1160, height=570, bg='whitesmoke')
+        # expand=0, fill=X 只允许X轴反向扩张
+        self.frmTOP.pack(side=TOP, expand=0, fill=X)
+        # expand=1, fill=BOTH 全方位扩张
+        self.frmBOT.pack(side=BOTTOM, expand=1, fill=BOTH)
+        # 目标，输入框
+        self.frmA = Frame(self.frmTOP, width=670, height=120,bg='whitesmoke')
+        # 输出信息
+        self.frmB = Frame(self.frmTOP, width=490, height=120, bg='whitesmoke')
+        # # grid布局
+        # self.frmA.grid(row=0, column=0, padx=1, pady=1)
+        # self.frmB.grid(row=0, column=1, padx=1, pady=1)
+        # pack布局
+        self.frmA.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frmB.pack(side=RIGHT, expand=1, fill=BOTH)
 
     def CreateFirst(self):
-        self.frame_1 = LabelFrame(self.frmA, text="基本配置", labelanchor="nw", width=660, height=110, bg='white')
-        #self.frame_2 = LabelFrame(self.frmA, text="参数配置", labelanchor="nw", width=550, height=83, bg='white')
-        #self.frame_3 = LabelFrame(self.frmA, text="heads", labelanchor="nw", width=360, height=250, bg='black')
-        self.frame_1.grid(row=0, column=0, padx=2, pady=2)
-        #self.frame_2.grid(row=1, column=0, padx=2, pady=2)
-        #self.frame_3.grid(row=0, column=1, padx=2, pady=2)
-        self.frame_1.grid_propagate(0)
-        #self.frame_2.grid_propagate(0)
-        #self.frame_3.grid_propagate(0)
-
-        ###基本配置
-        self.label_1 = Label(self.frame_1, text="目标地址")
-        self.EntA_1 = Entry(self.frame_1, width='55',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Top_url,font=("consolas",10)) #接受输入控件
-
-        #批量导入文件
-        self.Button_1 = Button(self.frame_1, text='......', width=6, command=lambda :myurls.show())
-
-        #self.label_2 = Label(self.frame_1, text="Cookie")
-        #self.EntA_2 = Entry(self.frame_1, width='58',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Top_cookie,font=("consolas",10)) #接受输入控件
-
-        self.label_3 = Label(self.frame_1, text="漏洞名称")
-        self.comboxlist_3 = ttk.Combobox(self.frame_1,width='17',textvariable=Ent_B_Top_vulname,state='readonly') #接受输入控件
-        self.comboxlist_3["values"] = tuple(exp_scripts)
-        self.comboxlist_3.bind("<<ComboboxSelected>>", bind_combobox)
-
-        self.comboxlist_3_1 = ttk.Combobox(self.frame_1,width='32',textvariable=Ent_B_Top_vulmethod,state='readonly') #接受输入控件2
-        self.button_3 = Button(self.frame_1, text="编辑文件", width=6, command=lambda:thread_it(CodeFile,**{
+        self.frame_1 = LabelFrame(self.frmA, text="基本配置", labelanchor="nw", width=660, height=130, bg='whitesmoke')
+        # pack布局
+        self.frame_1.pack(expand=1, fill=BOTH)
+        # 基本配置
+        self.frame_1_1 = Frame(self.frame_1, width=660, height=40, bg='whitesmoke')
+        self.frame_1_2 = Frame(self.frame_1, width=660, height=40, bg='whitesmoke')
+        self.frame_1_3 = Frame(self.frame_1, width=660, height=40, bg='whitesmoke')
+        # pack布局
+        self.frame_1_1.pack(side=TOP, expand=0, fill=X)
+        self.frame_1_2.pack(side=TOP, expand=0, fill=X)
+        self.frame_1_3.pack(side=TOP, expand=0, fill=X)
+        
+        self.label_1_1 = Label(self.frame_1_1, text="目标地址")
+        self.EntA_1_1 = Entry(self.frame_1_1, width='55',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Top_url, font=("consolas",10))
+        self.Button_1_1 = Button(self.frame_1_1, text='......', width=6, command=lambda :myurls.show())
+        
+        self.label_1_1.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntA_1_1.pack(side=LEFT, expand=1, fill=X)
+        self.Button_1_1.pack(side=LEFT, expand=0, fill=NONE)
+        
+        self.label_1_2 = Label(self.frame_1_2, text="认证头部")
+        self.EntA_1_2 = Entry(self.frame_1_2, width='55',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Top_cookie,font=("consolas",10))
+        self.label_1_2.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntA_1_2.pack(side=LEFT, expand=1, fill=X)
+        
+        self.label_1_3 = Label(self.frame_1_3, text="漏洞名称")
+        self.comboxlist_1_3 = ttk.Combobox(self.frame_1_3,width='17',textvariable=Ent_B_Top_vulname,state='readonly')
+        self.comboxlist_1_3["values"] = tuple(exp_scripts)
+        self.comboxlist_1_3.bind("<<ComboboxSelected>>", bind_combobox)
+        self.comboxlist_1_3_1 = ttk.Combobox(self.frame_1_3,width='32',textvariable=Ent_B_Top_vulmethod,state='readonly')
+        self.button_1_3 = Button(self.frame_1_3, text="编辑文件", width=6, command=lambda:thread_it(CodeFile,**{
             'root':gui.root,
             'file_name':Ent_B_Top_vulname.get(),
             'Logo':'2',
             'vuln_select':myexp_vuln,
             'text':Ent_B_Top_vulmethod.get(),
             }))
-
-        self.label_1.grid(row=0,column=0,padx=1, pady=1)
-        self.EntA_1.grid(row=0,columnspan=4,padx=1, pady=1)
-        self.Button_1.grid(row=0,column=3,padx=1, pady=1)
-
-        #self.label_2.grid(row=1,column=0,padx=1, pady=1)
-        #self.EntA_2.grid(row=1,columnspan=4,padx=1, pady=1)
-
-        self.label_3.grid(row=2,column=0,padx=1, pady=1,sticky=W)
-        self.comboxlist_3.grid(row=2,column=1,padx=1, pady=1,sticky=W)
-        self.comboxlist_3_1.grid(row=2,column=2,padx=1, pady=1,sticky=W)
-        self.button_3.grid(row=2,column=3,padx=1, pady=1,sticky=W)
+        self.label_1_3.pack(side=LEFT, expand=0, fill=NONE)
+        self.comboxlist_1_3.pack(side=LEFT, expand=1, fill=X)
+        self.comboxlist_1_3_1.pack(side=LEFT, expand=1, fill=X)
+        self.button_1_3.pack(side=LEFT, expand=0, fill=NONE)
 
     def CreateSecond(self):
-        self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=110, bg='white')
-        self.frame_B1.grid(row=0, column=0, padx=2, pady=2)
-        #self.frame_B1.propagate()
-        self.frame_B1.grid_propagate()
+        self.frame_B1 = LabelFrame(self.frmB, text="参数配置", labelanchor="nw", width=400, height=130, bg='whitesmoke')
+        # pack布局
+        self.frame_B1.pack(expand=1, fill=BOTH)
 
         self.label_4 = Label(self.frame_B1, text="命令执行(True/False)")
         self.comboxlist_4 = ttk.Combobox(self.frame_B1,width='6',textvariable=Ent_B_Top_funtype,state='readonly') #接受输入控件
@@ -950,24 +934,19 @@ class MyEXP:
         self.b8.grid(row=0,column=1,padx=2, pady=2, sticky=W)
 
     def CreateThird(self):
-        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=1160, height=580, bg='white')
-        self.frmBOT_1_1 = Frame(self.frmBOT_1, width=1160, height=20, bg='white')
-        self.frmBOT_1_2 = Frame(self.frmBOT_1, width=1160, height=550, bg='white')
-        self.frmBOT_1_3 = Frame(self.frmBOT_1, width=1160, height=10, bg='white')
+        self.frmBOT_1 = LabelFrame(self.frmBOT, text="命令执行", labelanchor="nw", width=1160, height=570, bg='whitesmoke')
+        self.frmBOT_1_1 = Frame(self.frmBOT_1, width=1160, height=20, bg='whitesmoke')
+        self.frmBOT_1_2 = Frame(self.frmBOT_1, width=1160, height=550, bg='whitesmoke')
+        self.frmBOT_1_3 = Frame(self.frmBOT_1, width=1160, height=10, bg='whitesmoke')
 
-        self.frmBOT_1.grid(row=0, column=0 , padx=2, pady=2)
-        self.frmBOT_1_1.grid(row=0, column=0 , padx=2, pady=2)
-        self.frmBOT_1_2.grid(row=1, column=0 , padx=0, pady=0)
-        self.frmBOT_1_3.grid(row=2, column=0 , padx=0, pady=0)
-
-        self.frmBOT_1.grid_propagate()
-        self.frmBOT_1_1.grid_propagate()
-        self.frmBOT_1_2.grid_propagate()
-        self.frmBOT_1_3.grid_propagate()
+        self.frmBOT_1.pack(expand=1, fill=BOTH)
+        self.frmBOT_1_1.pack(side=TOP, expand=0, fill=X)
+        self.frmBOT_1_2.pack(side=TOP, expand=1, fill=BOTH)
+        self.frmBOT_1_3.pack(side=TOP, expand=0, fill=X)
 
         self.labelBOT_1 = Label(self.frmBOT_1_1, text="CMD命令")
         self.EntABOT_1 = Entry(self.frmBOT_1_1, width='91',highlightcolor='red', highlightthickness=1,textvariable=Ent_B_Bottom_Left_cmd,font=("consolas",10)) #接受输入控件
-        self.EntABOT_1.insert(0, "echo {}".format(GlobalVar.get_value('flag')))
+        self.EntABOT_1.insert(0, "echo " + GlobalVar.get_value('flag'))
         self.buttonBOT_1 = Button(self.frmBOT_1_1, text="执行任务",command=lambda : thread_it(exeCMD,**{
             'url' : Ent_B_Top_url.get().strip('/'),
             'cookie' : Ent_B_Top_cookie.get(),
@@ -980,43 +959,27 @@ class MyEXP:
             'pool_num' : int(Ent_B_Top_thread_pool.get()),
             }
         ))
-        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='取消任务', command=lambda : thread_it(CancelThread()))
-        self.buttonBOT_2 = Button(self.frmBOT_1_1, text='清空信息', command=lambda : delText(exp.TexBOT_1_2))
-
-        self.frame_progress = FrameProgress(self.frmBOT_1_3, width=1130, height=10, Prolength=1130, maximum=1000, bg='white')
-        self.frame_progress.grid(row=0, column=0)
-
-        self.labelBOT_1.grid(row=0, column=0 , padx=2, pady=2,sticky=W)
-        self.EntABOT_1.grid(row=0, column=1 , padx=2, pady=2,sticky=W)
-        self.buttonBOT_1.grid(row=0, column=2 , padx=2, pady=2,sticky=W)
-        self.buttonBOT_3.grid(row=0, column=3 , padx=2, pady=2,sticky=W)
-        self.buttonBOT_2.grid(row=0, column=4 , padx=2, pady=2,sticky=W)
-        #self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
-
-        self.TexBOT_1_2 = Text(self.frmBOT_1_2, font=("consolas",9), width=138, height=26, bg='black')
-        self.ScrBOT_1_2 = Scrollbar(self.frmBOT_1_2)  #滚动条控件
-
-        self.TexBOT_1_2.bind("<Button-3>", lambda x: self.rightKey(x, self.menubar))#绑定右键鼠标事件
-        #提前定义颜色
+        # 功能按钮
+        self.buttonBOT_2 = Button(self.frmBOT_1_1, text='取消任务', command=lambda : thread_it(CancelThread()))
+        self.buttonBOT_3 = Button(self.frmBOT_1_1, text='清空信息', command=lambda : delText(exp.TexBOT_1_2))
+        # pack布局
+        self.labelBOT_1.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntABOT_1.pack(side=LEFT, expand=1, fill=X)
+        self.buttonBOT_1.pack(side=LEFT, expand=0, fill=NONE)
+        self.buttonBOT_2.pack(side=LEFT, expand=0, fill=NONE)
+        self.buttonBOT_3.pack(side=LEFT, expand=0, fill=NONE)
+        # 文本框
+        self.TexBOT_1_2 = scrolledtext.ScrolledText(self.frmBOT_1_2, font=("consolas",9), width=138, height=26, bg='black')
+        # 绑定右键鼠标事件
+        self.TexBOT_1_2.bind("<Button-3>", lambda x: self.rightKey(x, self.menubar))
+        # 提前定义颜色
         self.TexBOT_1_2.tag_add("here", "1.0","end")
         self.TexBOT_1_2.tag_config("here", background="black")
+        self.TexBOT_1_2.pack(expand=1, fill=BOTH)
+        # 进度条
+        self.frame_progress = FrameProgress(self.frmBOT_1_3, height=10, maximum=1000)
+        self.frame_progress.pack(side=BOTTOM, expand=0, fill=X)
 
-        #self.p1 = ttk.Progressbar(self.frmBOT_1_2, length=500, mode="determinate", maximum=400, orient=HORIZONTAL)
-        #self.p1.grid(row=0, columnspan=3, sticky=W)
-
-        self.TexBOT_1_2.grid(row=0, column=1 , padx=0, pady=0)
-        self.ScrBOT_1_2.grid(row=0, column=2, sticky=S + W + E + N)
-        self.ScrBOT_1_2.config(command=self.TexBOT_1_2.yview)
-        self.TexBOT_1_2.config(yscrollcommand=self.ScrBOT_1_2.set)
-    '''
-    def color_switch(self, color):
-        self.ColorButton.grid_forget()
-        self.ColorImage = ImageTk.PhotoImage(file="./lib/"+color+".png")
-        self.ColorButton = Button(self.frmBOT_1_1, image=self.ColorImage)
-        self.ColorButton["bg"] = "white"
-        self.ColorButton["border"] = "0"
-        self.ColorButton.grid(row=0, column=5 , padx=2, pady=2,sticky=W)
-    '''
     def rightKey(self, event, menubar):
         menubar.delete(0,END)
         menubar.add_command(label='在浏览器显示结果', command=lambda:open_html('./EXP/output.html'))
@@ -1025,15 +988,15 @@ class MyEXP:
         menubar.post(event.x_root,event.y_root)
 
     def start(self):
-        LoadEXP()
         self.CreateFrm()
         self.CreateFirst()
         self.CreateSecond()
         self.CreateThird()
 
-#漏洞测试界面类
+# 漏洞测试界面类
 class Mycheck:
-    Get_type = ['GET','POST']#请求类型
+    # 请求类型
+    Get_type = ['GET','POST','PUT','DELETE']
     def __init__(self, gui):
         self.frmCheck = gui.frmCheck
         self.root = gui.root
@@ -1042,86 +1005,75 @@ class Mycheck:
         self.Value = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0','close','gzip, deflate','*/*']
 
     def CreateFrm(self):
-        #self.frmTOP = Frame(self.frmCheck, width=960, height=25,bg='whitesmoke')
+        self.frmleft = Frame(self.frmCheck, width=520, height=700,bg='whitesmoke')
+        self.frmright = Frame(self.frmCheck, width=640, height=700,bg='whitesmoke')
+        # 布局
+        self.frmleft.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frmright.pack(side=RIGHT, expand=1, fill=BOTH)
 
-        self.frmleft_1 = Frame(self.frmCheck, width=520, height=90,bg='white')
-        self.frmleft_2 = Frame(self.frmCheck, width=520, height=260,bg='white')
-        self.frmleft_3 = Frame(self.frmCheck, width=520, height=350,bg='white')
-
-        self.frmright = Frame(self.frmCheck, width=640, height=700,bg='green')
-
-        #self.frmTOP.grid(row=0, columnspan=2, padx=1, pady=1)
-        self.frmleft_1.grid(row=1, column=0, padx=1, pady=1, sticky="w")
-        self.frmleft_2.grid(row=2, column=0, padx=1, pady=1, sticky="w")
-        self.frmleft_3.grid(row=3, column=0, padx=1, pady=1, sticky="w")
-        self.frmright.grid(row=1, rowspan=3, column=1, padx=1, pady=1, sticky="e")
-
-        #self.frmTOP.grid_propagate(0)
-        self.frmleft_1.grid_propagate(0)
-        self.frmleft_2.grid_propagate(0)
-        self.frmleft_3.grid_propagate(0)
-        self.frmright.grid_propagate(0)
+        self.frmleft_1 = Frame(self.frmleft, width=520, height=90,bg='whitesmoke')
+        self.frmleft_2 = Frame(self.frmleft, width=520, height=260,bg='whitesmoke')
+        self.frmleft_3 = Frame(self.frmleft, width=520, height=350,bg='whitesmoke')
+        self.frmleft_1.pack(side=TOP, expand=0, fill=X)
+        self.frmleft_2.pack(side=TOP, expand=0, fill=X)
+        self.frmleft_3.pack(side=TOP, expand=1, fill=BOTH)
 
     def CreateFirst(self):
         pass
-        #self.checkbutton_1 = Button(self.frmTOP, text='发送', width=10, activebackground = "blue", command=lambda :thread_it(self._request))
-        #self.checkbutton_2 = Button(self.frmTOP, text='生成EXP', width=10, activebackground = "blue", command=lambda :CreateExp(gui.root))
-        #self.checkbutton_3 = Button(self.frmTOP, text='SQL注入检测', width=10, activebackground = "red", command=self.check_sql)
-
-        #elf.checkbutton_1.grid(row=0, column=0, padx=2, pady=2, sticky='e')
-        #self.checkbutton_2.grid(row=0, column=1, padx=2, pady=2, sticky='e')
-        #self.checkbutton_3.grid(row=0, column=2, padx=2, pady=2, sticky='e')
 
     def CreateSecond(self):
-        self.label_1 = Label(self.frmleft_1, text="请求方法")
-        self.comboxlist_1 = ttk.Combobox(self.frmleft_1,width='15',textvariable=Ent_C_Top_reqmethod,state='readonly')#请求方法类型
+        self.frmleft_1_1 = Frame(self.frmleft_1, width=520, height=30, bg='whitesmoke')
+        self.frmleft_1_2 = Frame(self.frmleft_1, width=520, height=30, bg='whitesmoke')
+        self.frmleft_1_3 = Frame(self.frmleft_1, width=520, height=30, bg='whitesmoke')
+        self.frmleft_1_1.pack(side=TOP, expand=1, fill=BOTH)
+        self.frmleft_1_2.pack(side=TOP, expand=1, fill=BOTH)
+        self.frmleft_1_3.pack(side=TOP, expand=1, fill=BOTH)
+        
+        self.label_1 = Label(self.frmleft_1_1, text="请求方法")
+        # 请求方法类型
+        self.comboxlist_1 = ttk.Combobox(self.frmleft_1_1,width='15',textvariable=Ent_C_Top_reqmethod,state='readonly')
         self.comboxlist_1["values"] = tuple(Mycheck.Get_type)
         self.comboxlist_1.bind("<<ComboboxSelected>>", self.Action_post)
+        self.label_1.pack(side=LEFT, expand=0, fill=NONE)
+        self.comboxlist_1.pack(side=LEFT, expand=0, fill=NONE)
 
-        self.label_2 = Label(self.frmleft_1, text="请求地址")
-        self.EntA_1 = Entry(self.frmleft_1, width=49,highlightcolor='red', highlightthickness=1,textvariable=Ent_C_Top_url,font=("consolas",10))#URL
+        self.label_2 = Label(self.frmleft_1_2, text="请求地址")
+        self.EntA_1 = Entry(self.frmleft_1_2, width=49,highlightcolor='red', highlightthickness=1,textvariable=Ent_C_Top_url,font=("consolas",10))
+        self.label_2.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntA_1.pack(side=LEFT, expand=1, fill=X)
 
-        self.label_3 = Label(self.frmleft_1, text="请求路径")
-        self.EntA_2 = Entry(self.frmleft_1, width=49,highlightcolor='red', highlightthickness=1,textvariable=Ent_C_Top_path,font=("consolas",10))#PATH
-
-        self.label_1.grid(row=0, column=0, padx=1, pady=1)
-        self.comboxlist_1.grid(row=0, column=1, padx=1, pady=1, sticky='w')
-        self.label_2.grid(row=1, column=0, padx=1, pady=1, sticky='w')
-        self.EntA_1.grid(row=1, column=1, padx=1, pady=1, sticky='w')
-        self.label_3.grid(row=2, column=0, padx=1, pady=1, sticky='w')
-        self.EntA_2.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.label_3 = Label(self.frmleft_1_3, text="请求路径")
+        self.EntA_2 = Entry(self.frmleft_1_3, width=49,highlightcolor='red', highlightthickness=1,textvariable=Ent_C_Top_path,font=("consolas",10))
+        self.label_3.pack(side=LEFT, expand=0, fill=NONE)
+        self.EntA_2.pack(side=LEFT, expand=1, fill=X)
     
     def CreateThird(self):
-        self.frmleft_2_1 = Frame(self.frmleft_2, width=420, height=260,bg='whitesmoke')#
-        self.frmleft_2_2 = Frame(self.frmleft_2, width=100, height=260,bg='whitesmoke')#
+        self.frmleft_2_1 = Frame(self.frmleft_2, width=420, height=260, bg='whitesmoke')
+        self.frmleft_2_2 = Frame(self.frmleft_2, width=100, height=260, bg='whitesmoke')
+        self.frmleft_2_1.pack(side=LEFT, expand=1, fill=BOTH)
+        self.frmleft_2_2.pack(side=RIGHT, expand=0, fill=Y)
 
-        self.frmleft_2_1.grid(row=0, column=0, padx=1, pady=1)
-        self.frmleft_2_2.grid(row=0, column=1, padx=1, pady=1)
-
-        self.frmleft_2_1.grid_propagate(0)
-        self.frmleft_2_2.grid_propagate(0)
-
-
-        self.treeview_1 = ttk.Treeview(self.frmleft_2_1, height=13, show="headings", columns=self.columns)  # 表格
-
-        self.treeview_1.column("字段", width=120, anchor='w')#表示列,不显示
+        # 表格
+        self.treeview_1 = ttk.Treeview(self.frmleft_2_1, height=13, show="headings", columns=self.columns)
+        # 表示列,不显示
+        self.treeview_1.column("字段", width=120, anchor='w')
         self.treeview_1.column("值", width=300, anchor='w')
- 
-        self.treeview_1.heading("字段", text="字段")#显示表头
+        # 显示表头
+        self.treeview_1.heading("字段", text="字段")
         self.treeview_1.heading("值", text="值")
-
-        self.treeview_1.bind('<Double-Button-1>', self.set_cell_value) # 双击左键进入编辑
+        # 双击左键进入编辑
+        self.treeview_1.bind('<Double-Button-1>', self.set_cell_value)
+        self.treeview_1.pack(expand=1, fill=BOTH)
 
         self.checkbutton_1 = Button(self.frmleft_2_2, text='发   送', width=10, activebackground = "blue", command=lambda : thread_it(self._request))
         self.checkbutton_2 = Button(self.frmleft_2_2, text='生成EXP', width=10, activebackground = "blue", command=lambda : createexp.show())
-        self.checkbutton_3 = Button(self.frmleft_2_2, text='注入检测', width=10, activebackground = "red", command=self.check_sql)
+        self.checkbutton_3 = Button(self.frmleft_2_2, text='<-还原', width=10, activebackground = "red", command=self.reUrl)
 
         self.checkbutton_4 = Button(self.frmleft_2_2, text='<-添加', width=10, command=self.newrow)
         self.checkbutton_5 = Button(self.frmleft_2_2, text='<-删除', width=10, command=self.deltreeview)
         self.checkbutton_6 = Button(self.frmleft_2_2, text='清空->', width=10, command=lambda : delText(self.Text_response))
         self.checkbutton_7 = Button(self.frmleft_2_2, text='渲染->', width=10, command=lambda : open_html('./EXP/response.html'))
 
-        self.treeview_1.grid(row=0, column=0, padx=1, pady=1)
         self.checkbutton_1.grid(row=0, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_2.grid(row=1, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_3.grid(row=2, column=0, padx=1, pady=1, sticky='n')
@@ -1129,8 +1081,8 @@ class Mycheck:
         self.checkbutton_5.grid(row=4, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_6.grid(row=5, column=0, padx=1, pady=1, sticky='n')
         self.checkbutton_7.grid(row=6, column=0, padx=1, pady=1, sticky='n')
-
-        for i in range(min(len(self.Type),len(self.Value))): # 写入数据
+        # 写入数据
+        for i in range(min(len(self.Type),len(self.Value))):
             self.treeview_1.insert('', 
                                 i, 
                                 iid='I00'+str(i+1),
@@ -1138,38 +1090,22 @@ class Mycheck:
                                 self.Value[i]))
 
     def CreateFourth(self):
-        #self.Text_post = scrolledtext.ScrolledText(self.frmleft_3,font=("consolas",9),width=62,height=10,undo = True)
-        #self.Text_post.pack(fill=BOTH, expand=1)
-        
-        self.Text_post = Text(self.frmleft_3, font=("consolas",9), width=62, height=17)
-        self.Text_scr = Scrollbar(self.frmleft_3)
-        self.Text_post.grid(row=0, column=0, padx=1, pady=1)
-        self.Text_scr.grid(row=0, column=1, sticky=S + W + E + N)
-        self.Text_scr.config(command=self.Text_post.yview)
-        self.Text_post.config(yscrollcommand=self.Text_scr.set)
+        self.Text_post = scrolledtext.ScrolledText(self.frmleft_3, font=("consolas", 10), width=62, height=17, undo = True)
+        self.Text_post.pack(expand=1, fill=BOTH)
 
     def CreateFivth(self):
-        self.Text_response = scrolledtext.ScrolledText(self.frmright,font=("consolas",9),width=76,height=40,undo = True)
-        self.Text_response.pack(fill=BOTH, expand=1)
+        self.Text_response = scrolledtext.ScrolledText(self.frmright,font=("consolas", 10), width=76, height=40, undo = True)
+        self.Text_response.pack(expand=1, fill=BOTH)
         self.Text_response.configure(state="disabled")
-        
-        #self.Text_response = Text(self.frmright, font=("consolas",9), width=67, height=33)
-        #self.Text_response_scr = Scrollbar(self.frmright)
-        #self.Text_response.configure(state="disabled")
-        #self.Text_response.grid(row=0, column=0, padx=1, pady=1)
-        #self.Text_response_scr.grid(row=0, column=1, sticky=S + W + E + N)
-        #self.Text_response_scr.config(command=self.Text_response.yview)
-        #self.Text_response.config(yscrollcommand=self.Text_response_scr.set)
 
-    def Action_post(self,*args):
-        if Ent_C_Top_reqmethod.get() == 'POST':
+    def Action_post(self, *args):
+        if Ent_C_Top_reqmethod.get() == 'POST' or Ent_C_Top_reqmethod.get() == 'PUT':
             self.Type.append('Content-Type')
             self.Value.append('application/x-www-form-urlencoded')
             self.treeview_1.insert('', len(self.Type)-1, values=(self.Type[len(self.Type)-1], self.Value[len(self.Type)-1]))
             self.treeview_1.update()
         else:
             for index in self.treeview_1.get_children():
-                #a = self.treeview_1.item(index, "values")
                 if self.treeview_1.item(index, "values")[0] == 'Content-Type':
                     self.treeview_1.delete(index)
                     self.Type[int(index.replace('I00',''))-1] = None
@@ -1201,15 +1137,17 @@ class Mycheck:
         #self.Value = [self.Value[i] for i in range(0, len(self.Value), 1) if i not in index_to_delete]
             
     #双击编辑事件
-    def set_cell_value(self,event):
+    def set_cell_value(self, event):
         for self.item in self.treeview_1.selection():
         #item = I001
             item_text = self.treeview_1.item(self.item, "values")
             #a = self.treeview_1.item(self.item)
 	
         #print(item_text[0:2])  # 输出所选行的值
-        self.column= self.treeview_1.identify_column(event.x)# 列
-        #row = self.treeview_1.identify_row(event.y)  # 行
+        # 列
+        self.column= self.treeview_1.identify_column(event.x)
+        #row = self.treeview_1.identify_row(event.y)
+        # 行
         cn = int(str(self.column).replace('#',''))
         rn = math.floor(math.floor(event.y-25)/18)+1
         #rn = int(str(row).replace('I',''))
@@ -1221,7 +1159,7 @@ class Mycheck:
                         height=18)
         
     #文本失去焦点事件
-    def saveedit(self,event):
+    def saveedit(self, event):
         try:
             self.treeview_1.set(self.item, column=self.column, value=self.entryedit.get(0.0, "end"))
             a = self.treeview_1.set(self.item)
@@ -1298,6 +1236,21 @@ class Mycheck:
                                                 timeout=self.TIMEOUT,
                                                 verify=False,
                                                 allow_redirects=False)
+
+            elif self.Action == 'PUT':
+                self.response = requests.put(url=self.url,
+                                                headers=self.headers,
+                                                data=self.data_post,
+                                                timeout=self.TIMEOUT,
+                                                verify=False,
+                                                allow_redirects=False)
+
+            elif self.Action == 'DELETE':
+                self.response = requests.delete(url=self.url,
+                                                headers=self.headers,
+                                                timeout=self.TIMEOUT,
+                                                verify=False,
+                                                allow_redirects=False)
             else:
                 messagebox.showinfo(title='提示', message='暂不支持该方法!')
                 return
@@ -1323,6 +1276,11 @@ class Mycheck:
             messagebox.showinfo(title='错误', message=error)
         finally:
             self.Text_response.configure(state="disabled")
+
+    def reUrl(self):
+        Ent_C_Top_reqmethod.set('GET')
+        Ent_C_Top_url.set('http://httpbin.org')
+        Ent_C_Top_path.set('/ip')
 
     def check_sql(self):
         url_list = []
@@ -1417,7 +1375,6 @@ class Mycheck:
                     except Exception as e:
                         continue
                 messagebox.showinfo(title='提示', message='不存在SQL注入!')
-
         else:
             pass
 
@@ -1538,12 +1495,12 @@ def RefreshEXP():
     try:
         LoadEXP()
         exp_scripts_cve = exp_scripts_cve[0:1]
-        x = exp.comboxlist_3.get()
+        x = exp.comboxlist_1_3.get()
         for func in dir(myexp_vuln.__dict__[x]):#获取实际导入的EXP对象
             if not func.startswith("__") and not func.startswith("_"):
                 exp_scripts_cve.append(func)#设置具体的CVE漏洞
-        exp.comboxlist_3["values"] = tuple(exp_scripts)
-        exp.comboxlist_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏
+        exp.comboxlist_1_3["values"] = tuple(exp_scripts)
+        exp.comboxlist_1_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏
     #except AttributeError:
     #    messagebox.showinfo('提示','当前还未加载脚本对象!')
     except Exception as e:
@@ -1554,17 +1511,17 @@ def bind_combobox(*args):
     global exp_scripts_cve,myexp_vuln
     try:
         exp_scripts_cve = ['ALL']
-        x = exp.comboxlist_3.get()
+        x = exp.comboxlist_1_3.get()
         myexp_vuln = importlib.import_module('.%s'%x,package='EXP')
         #print(MyEXP.vuln.__dict__)
         for func in dir(myexp_vuln.__dict__[x]):#获取实际导入的EXP对象
         #for func in dir(MyEXP.vuln.__dict__[x.lower()]):
             if not func.startswith("__") and not func.startswith("_"):
                 exp_scripts_cve.append(func)#设置具体的CVE漏洞
-        exp.comboxlist_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏洞
+        exp.comboxlist_1_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏洞
         print('[*]%s模块已准备就绪!'%x)
     except KeyError:
-        exp.comboxlist_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏洞
+        exp.comboxlist_1_3_1["values"] = tuple(exp_scripts_cve)#设置具体的CVE漏洞
         myexp_vuln = importlib.import_module('.%s'%x,package='EXP')
         print('[*]%s模块已准备就绪!'%x)
     except Exception as e:
@@ -1575,7 +1532,7 @@ def bind_combobox(*args):
 def bind_combobox_3(*args):
     x = exp.comboxlist_4.get()
     if x == 'False':
-        Ent_B_Bottom_Left_cmd.set('echo {}'.format(GlobalVar.get_value('flag')))
+        Ent_B_Bottom_Left_cmd.set('echo '+ GlobalVar.get_value('flag'))
     else:
         Ent_B_Bottom_Left_cmd.set('whoami')
 
@@ -1645,13 +1602,13 @@ def save_result():
         timestr = time.strftime("%Y%m%d_%H%M%S")#获取当前时间
         print('[*]已保存检测结果 -> %s_%s.xlsx'%(MyGUI.vul_name,timestr))
         MyGUI.wb.save('./result/%s_%s.xlsx'%(MyGUI.vul_name,timestr))
-        #清空数据
-        MyGUI.wb = None
-        MyGUI.ws = None
+        #不清空数据
+        # MyGUI.wb = None
+        # MyGUI.ws = None
     else:
         print('[-]未找到批量检测结果, 请先执行脚本测试!')
         
-#重载脚本函数
+# 重载脚本函数
 def ReLoad():
     try:
         MyGUI.vuln = importlib.reload(MyGUI.vuln)
@@ -1660,37 +1617,21 @@ def ReLoad():
         messagebox.showinfo(title='提示', message='重新加载失败')
         return
 
-#echo_threadLock = threading.Lock()
-#def eprint(str):
-#    echo_threadLock.acquire() #获取锁
-#    exp.TexBOT_1_2.configure(state="normal")
-#    exp.TexBOT_1_2.insert(END, str, ('white',))
-#    exp.TexBOT_1_2.configure(state="disabled")
-#    exp.TexBOT_1_2.see(END)
-#    echo_threadLock.release() #释放锁
-
-#切换界面
+# 切换界面函数
 def switchscreen(frame):
     for screen in MyGUI.screens:
-        screen.grid_remove()
-    frame.grid(row=1, column=0, padx=2, pady=2)
+        # grid布局 grid_remove()
+        # pack布局 pack_forget()
+        screen.pack_forget()
+    frame.pack(side=BOTTOM, expand=1, fill=BOTH)
     if frame == gui.frmPOC:
+        # 输出重定向到POC界面
         sys.stdout = TextRedirector(gui.TexB, "stdout")
-        sys.stderr = TextRedirector(gui.TexB, "stderr")
     elif frame == gui.frmEXP:
-        sys.stdout = TextRedirector(exp.TexBOT_1_2, "stdout", index="2")
-        sys.stderr = TextRedirector(exp.TexBOT_1_2, "stderr", index="2")
-    #elif frame == gui.frmDb:
-    #    sys.stdout = TextRedirector(VulDatabase.frames_dict[str(myvuldatabase.notepad.index("current"))]['Text_note'], "stdout", index="2")
-    #    sys.stderr = TextRedirector(VulDatabase.frames_dict[str(myvuldatabase.notepad.index("current"))]['Text_note'], "stderr", index="2")
+        # 输出重定向到EXP界面
+        sys.stdout = TextRedirector(exp.TexBOT_1_2, "stdout", index="exp")
 
-#创建多个存储POC脚本的界面, 默认为1, 2, 3, 4
-def Area_POC(index):
-    for i in range(1,5):
-        gui.frms['frmD_'+str(i)].grid_remove()
-    gui.frms['frmD_'+str(index)].grid(row=1, column=1, padx=2, pady=2)
-
-#进度条自动增长函数
+# 进度条自动增长函数
 def autoAdd():
     from util.fun import randomInt
     thread_list = GlobalVar.get_value('thread_list')
@@ -1716,7 +1657,7 @@ def autoAdd():
             break
         time.sleep(randomInt(1,3))
 
-#停止线程
+#取消未执行的任务
 def CancelThread():   
     thread_list = GlobalVar.get_value('thread_list')
     if len(thread_list) == 0:
@@ -1727,18 +1668,23 @@ def CancelThread():
         for task in thread_list:
             if task.cancel() == True:
                 index += 1
-        messagebox.showinfo(title='提示', message="总共有%s个任务,成功取消%s个任务"%(len(thread_list),str(index)))
+        messagebox.showinfo(title='提示', message="总共有%s个任务, 成功取消%s个任务"%(len(thread_list),str(index)))
     except TypeError as e:
-        messagebox.showinfo(title='提示', message='TypeError: '+e)
+        messagebox.showinfo(title='错误', message='TypeError: '+ str(e))
     except Exception as e:
-        messagebox.showinfo(title='错误', message=e)
+        messagebox.showinfo(title='错误', message=str(e))
 
 #漏洞利用界面执行命令函数
 def exeCMD(**kwargs):
     from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED,CancelledError
     if myexp_vuln == None:
         messagebox.showinfo(title='提示', message='还未选择模块')
-        return        
+        return
+    # 命令执行检测代理
+    if Proxy_CheckVar1.get() == 0:
+        if messagebox.askokcancel('提示','程序检测到未挂代理进行扫描,请确认是否继续?') == False:
+            print("[-]扫描已取消!")
+            return
     #开始标志
     #exp.color_switch('green')
     #获取记录条数
@@ -1750,8 +1696,8 @@ def exeCMD(**kwargs):
         temp = 0
     start = time.time()
     #初始化全局子线程列表
-    exp.pool = ThreadPoolExecutor(kwargs['pool_num'])
-    kwargs['pool'] = exp.pool
+    pool = ThreadPoolExecutor(kwargs['pool_num'])
+    kwargs['pool'] = pool
     GlobalVar.set_value('thread_list', [])
     #进度条初始化
     exp.frame_progress.pBar["value"] = 0
@@ -1769,6 +1715,7 @@ def exeCMD(**kwargs):
             
             for future in GlobalVar.get_value('thread_list'):
                 try:
+                    #结果不为None
                     if future.result():
                         i = future.result().split("|")
                         #去除取消掉的future任务
@@ -1806,10 +1753,6 @@ def exeCMD(**kwargs):
     elif myurls.TexA.get('0.0','end').strip('\n'):
         #去空处理
         file_list = [i for i in myurls.TexA.get('0.0','end').split("\n") if i != '']
-        if Proxy_CheckVar1.get() == 0 and len(file_list) > 10:
-            if messagebox.askokcancel('提示','程序检测到未挂代理进行扫描,请确认是否继续?') == False:
-                print("[-]扫描已取消!")
-                return
         #存储字典参数列表
         dict_list = []
         name = myexp_vuln.__name__.replace('EXP.','')
@@ -1918,27 +1861,25 @@ def exeCMD(**kwargs):
     #渲染颜色
     myvuldatabase.render_color()
     #关闭线程池
-    exp.pool.shutdown()
+    pool.shutdown()
 
 #退出时执行的函数
 def callbackClose():
     if messagebox.askokcancel('提示','要退出程序吗?') == True:
         try:
-            save_data = str(mynote.Text_note.get('0.0','end'))
-            fobj_w = open('note.txt', 'w', encoding='utf-8', errors='ignore')
-            fobj_w.writelines(save_data)
-            fobj_w.close()   
+            #笔记保存
+            mynote.save()
             #保存漏洞库存结果
             myvuldatabase.save_tree()
             #保存代理池
             my_proxy_pool.save_tree()
+            #程序异常日志保存
+            mydebug.save()
             #sys.exit(0)
             #gui.root.destroy()
         except Exception:
-            with open('file_temp.txt', 'w', encoding='utf-8', errors='ignore') as f:
-                f.writelines(save_data)
             #addToClipboard(save_data)
-            messagebox.showerror(title='保存文件错误, 数据已保存为临时文件 file_temp.txt')
+            messagebox.showerror(title='保存文件错误')
         finally:
             sys.exit(0)
 
@@ -1949,9 +1890,8 @@ if __name__ == "__main__":
     #repace 40 with whatever you need
     s.configure('Treeview', rowheight=18)
     s.configure('red.TSeparator',background='red')
-    global exp,mycheck,mynote,myvuldatabase,myurls,myproxy,createexp
     #导入变量
-    from settings import Proxy_type,Proxy_CheckVar1,Proxy_CheckVar2,Proxy_addr,Proxy_port, rootPath, curPath,\
+    from settings import Proxy_type,Proxy_CheckVar1,Proxy_CheckVar2,Proxy_addr,Proxy_port, rootPath, PojectPath,\
         Ent_A_Top_thread, Ent_A_Top_Text, \
         Ent_B_Top_url,Ent_B_Top_cookie,Ent_B_Top_vulname,Ent_B_Top_vulmethod,Ent_B_Top_funtype,Ent_B_Top_timeout,Ent_B_Top_retry_time,Ent_B_Top_retry_interval,Ent_B_Top_thread_pool,Ent_B_Bottom_Left_cmd,Ent_B_Bottom_terminal_cmd, \
         Ent_C_Top_url,Ent_C_Top_path,Ent_C_Top_reqmethod,Ent_C_Top_vulname,Ent_C_Top_cmsname,Ent_C_Top_cvename,Ent_C_Top_version,Ent_C_Top_info,Ent_C_Top_template, \
@@ -1959,14 +1899,17 @@ if __name__ == "__main__":
         Ent_yso_Top_type,Ent_yso_Top_class,Ent_yso_Top_cmd, \
         TCP_Debug_IP,TCP_Debug_PORT,TCP_Debug_PKT_BUFF_SIZE, \
         variable_dict,Proxy_web, \
-        exp_scripts,exp_scripts_cve,myexp_vuln, \
-        exp,mycheck,mynote,myvuldatabase,myurls,myproxy,createexp
+        exp_scripts,exp_scripts_cve,myexp_vuln
 
     #初始化全局变量
     GlobalVar._init()
-    #生成flag字段
+    #随机数
     flag = random_name(18)
     GlobalVar.set_value('flag', flag)
+    #初始化配置文件
+    settings_vuln = importlib.import_module('.GlobSettings',package='POC')
+    GlobalVar.set_value('settings_vuln', settings_vuln)
+    GlobalVar.set_value('screens', MyGUI.screens)
     #初始化全局代理变量
     os.environ['HTTP_PROXY'] = ''
     os.environ['HTTPS_PROXY'] = ''
@@ -1975,33 +1918,72 @@ if __name__ == "__main__":
     #生成漏洞利用界面
     exp = MyEXP(gui)
     exp.start()
+    GlobalVar.set_value('exp', exp)
     #生成漏洞测试界面
     mycheck = Mycheck(gui)
     mycheck.start()
+    GlobalVar.set_value('mycheck', mycheck)
     #生成漏洞笔记界面
-    from core import Loadfile, CodeFile, TopProxy, CreateExp, Mynote, VulDatabase, Proxy_pool
+    from core import Loadfile, CodeFile, TopProxy, CreateExp, Mynote, VulDatabase, Proxy_pool, Debug, Terlog, Tools, Thread, Zichanspace, Yufa_pool
     from module import ScanRecord
     mynote = Mynote(gui)
     mynote.start()
-    #漏洞库界面
-    myvuldatabase = VulDatabase(gui)
-    myvuldatabase.start()
+    GlobalVar.set_value('mynote', mynote)
     #多目标输入界面
     myurls = Loadfile(gui)
     myurls.hide()
+    GlobalVar.set_value('myurls', myurls)
+    #漏洞工具
+    mytools = Tools(gui)
+    mytools.start()
+    GlobalVar.set_value('mytools', mytools)
+    #威胁分析
+    mythread = Thread(gui)
+    mythread.start()
+    GlobalVar.set_value('mythread', mythread)
+    #终端日志
+    myterlog = Terlog(gui)
+    myterlog.start()
+    GlobalVar.set_value('myterlog', myterlog)
+    #程序异常日志界面
+    mydebug = Debug(gui)
+    mydebug.start()
+    GlobalVar.set_value('mydebug', mydebug)
+    #漏洞库界面
+    myvuldatabase = VulDatabase(gui)
+    myvuldatabase.start()
+    GlobalVar.set_value('myvuldatabase', myvuldatabase)
+    #资产空间界面
+    myzichanspace = Zichanspace(gui)
+    myzichanspace.start()
+    GlobalVar.set_value('myzichanspace', myzichanspace)
+    # #多目标输入界面
+    # myurls = Loadfile(gui)
+    # myurls.hide()
     #设置代理
     myproxy = TopProxy(gui)
     myproxy.hide()
+    GlobalVar.set_value('myproxy', myproxy)
     #代理池
     my_proxy_pool = Proxy_pool(gui)
     my_proxy_pool.hide()
+    #语法池
+    my_yufa_pool = Yufa_pool(gui)
+    my_yufa_pool.hide()
+    GlobalVar.set_value('my_yufa_pool', my_yufa_pool)
     #生成EXP
     createexp = CreateExp(gui)
     createexp.hide()
+    GlobalVar.set_value('createexp', createexp)
     #myyaml = YamlFile(gui)
     #输出重定向
     sys.stdout = TextRedirector(gui.TexB, "stdout")
-    sys.stderr = TextRedirector(gui.TexB, "stderr")
+    #输出类
+    # poc = TextRedirector(gui.TexB, "stdout")
+    # exp = TextRedirector(gui.TexB, "stdout")
+    # sys.stdout = TextRedirector(myterlog.Terlog_note, "stdout")
+    #标准错误重定向
+    sys.stderr = TextRedirector(mydebug.Debug_note, "stderr")
     #INSERT表示输入光标所在的位置，初始化后的输入光标默认在左上角
     gui.TexB.insert(INSERT, Ent_A_Top_Text.lstrip('\n'))
     #自定义退出函数

@@ -1,17 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
--------------------------------------------------
-   File Name：     configHandler
-   Description :
-   Author :        JHao
-   date：          2020/6/22
--------------------------------------------------
-   Change Activity:
-                   2020/6/22:
--------------------------------------------------
-"""
-__author__ = 'JHao'
-
 import os
 import Proxy.proxySetting as setting
 from Proxy.util.singleton import Singleton

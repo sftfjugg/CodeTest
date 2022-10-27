@@ -3,7 +3,7 @@
 
 #获取单个JS里的请求接口信息并将结果输出到output.html
 
-cookies = 'JSESSIONID=6F8DBE9C4C2BAF37C3F01960AB095BDE'
+cookies = ''
 
 template = """
 <!DOCTYPE html>
@@ -71,7 +71,8 @@ template = """
 """
 import os
 os.environ["BROWSER"] = "open"
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 # Import libraries
 import re, sys, glob, html, argparse, jsbeautifier, webbrowser, subprocess, base64, ssl, xml.etree.ElementTree
 
@@ -463,8 +464,3 @@ if __name__ == "__main__":
     check(**{'url':'http://www.so50.com/contactus/'})
 
     
-
-
-
-
-

@@ -1,12 +1,17 @@
+# -*- coding: utf-8 -*-
 from tkinter import Toplevel,Menu,Frame,scrolledtext
 from tkinter.filedialog import askopenfilename
 from tkinter import LEFT,YES,BOTH,INSERT
 from textwrap import wrap
+from util.fun import md5
+from IPy import IP
 import base64
 import os
 import re
 
-#加载多目标类
+from numpy import sort
+
+# 加载多目标类
 class Loadfile():
     def __init__(self, gui):
         self.file = Toplevel(gui.root)
@@ -14,27 +19,28 @@ class Loadfile():
         self.file.geometry('700x400+650+150')
         self.file.iconbitmap('python.ico')
 
-        #顶级菜单
+        # 顶级菜单
         self.menubar = Menu(self.file)
         self.menubar.add_command(label = "导 入", command=self.openfile)
         self.menubar.add_command(label = "清 空", command=self.clearfile)
         self.menubar.add_command(label = "添加http", command=self.addhttp)
         self.menubar.add_command(label = "添加https", command=self.addhttps)
         self.menubar.add_command(label = "base64解码", command=self.de_base64)
-        self.menubar.add_command(label = "空字符分隔", command=self.split_null)
-        self.menubar.add_command(label = "移除末尾状态码", command=self.remove_status)
+        self.menubar.add_command(label = "MD5加密", command=self.go_MD5)
+        self.menubar.add_command(label = "去重", command=self.del_same)
+        # self.menubar.add_command(label = "空字符分隔", command=self.split_null)
+        #self.menubar.add_command(label = "移除末尾状态码", command=self.remove_status)
+        self.menubar.add_command(label = "IP段解析", command=self.Resolve_IP)
+        self.menubar.add_command(label = "空格分割结果", command=self.split_result)
         #self.menubar.add_command(label = "长字符格式化", command=self.long_Beautify)
 
-        #显示菜单
+        # 显示菜单
         self.file.config(menu = self.menubar)
         self.frmA = Frame(self.file, width=650, height=400,bg="white")
-        self.frmA.rowconfigure(0,weight=1)
-        self.frmA.columnconfigure(0,weight=1)
-        self.frmA.pack(fill=BOTH, expand=1)
-
-        self.TexA = scrolledtext.ScrolledText(self.frmA,font=("consolas",9),width=74,height=19, undo = True)
-        self.TexA.pack(fill=BOTH, expand=1)
-
+        self.frmA.pack(expand=1, fill=BOTH)
+        self.TexA = scrolledtext.ScrolledText(self.frmA, font=("consolas", 10), width=74, height=19, undo = True)
+        self.TexA.pack(expand=1, fill=BOTH)
+        # 关联回调函数
         self.file.protocol("WM_DELETE_WINDOW", self.close)
 
     def hide(self):
@@ -121,6 +127,40 @@ class Loadfile():
                     self.TexA.insert(INSERT, result+'\n')
                 index = index+1
 
+    def go_MD5(self):
+        Loadfile_text = self.TexA.get('0.0','end')
+        self.TexA.delete('1.0','end')
+        array = Loadfile_text.split("\n")
+        array = [i for i in array if i!='']
+        #print(array)
+        index = 1
+        for i in array:
+            try:
+                result = md5(i)
+            except Exception as e:
+                result = '[-]加密失败: '+ i
+            finally:
+                if index == len(array):
+                    self.TexA.insert(INSERT, result)
+                else:
+                    self.TexA.insert(INSERT, result+'\n')
+                index = index+1
+
+    def del_same(self):
+        Loadfile_text = self.TexA.get('0.0','end')
+        self.TexA.delete('1.0','end')
+        array = Loadfile_text.split("\n")
+        array = [i for i in array if i!='']
+        array = sort(list(set(array)))
+        index = 1
+        for i in array:
+            if index == len(array):
+                self.TexA.insert(INSERT, i)
+            else:
+                self.TexA.insert(INSERT, i+'\n')
+            index = index+1
+
+
     def split_null(self):
         Loadfile_text = self.TexA.get('0.0','end')
         self.TexA.delete('1.0','end')
@@ -167,3 +207,28 @@ class Loadfile():
             else:
                 self.TexA.insert(INSERT, i+'\n')
             index = index+1
+
+    def Resolve_IP(self):        
+        Loadfile_text = self.TexA.get('0.0','end')
+        self.TexA.delete('1.0','end')
+        array = Loadfile_text.split("\n")
+        array = [i for i in array if i!='']
+        for CIDRip in array:
+            try:
+                ips = IP(CIDRip)
+                for ip in ips:
+                    self.TexA.insert(INSERT, str(ip)+'\n')
+            except Exception as e:
+                self.TexA.insert(INSERT, str(e))
+
+    def split_result(self):        
+        Loadfile_text = self.TexA.get('0.0','end')
+        self.TexA.delete('1.0','end')
+        array = Loadfile_text.split("\n")
+        array = [i for i in array if i!='']
+        for result in array:
+            try:
+                target = result.split(' ')[1]
+                self.TexA.insert(INSERT, str(target)+'\n')
+            except Exception as e:
+                self.TexA.insert(INSERT, str(e))
